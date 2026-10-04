@@ -163,6 +163,9 @@ def render_page() -> str:
     apnea_example = json.dumps(
         artifacts["class_examples"]["Sleep Apnea"], default=json_default
     )
+    none_example = json.dumps(
+        artifacts["class_examples"]["None"], default=json_default
+    )
 
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -179,12 +182,12 @@ button{{margin-top:22px;width:100%;padding:14px;border:0;border-radius:12px;back
 .bar{{height:9px;background:#203149;border-radius:9px;overflow:hidden;margin:5px 0 12px}} .fill{{height:100%;background:#6f8cff}} .note{{font-size:.8rem;color:#8292a9;margin-top:18px}}
 </style></head><body><main class="wrap"><h1>Sleep Disorder Prediction</h1>
 <p class="sub">Enter lifestyle and biometric information to obtain a prediction from a tree-ensemble soft-voting model.</p>
-<section class="card"><form id="form"><div class="presets"><button type="button" data-preset='Insomnia'>Try Insomnia example</button><button type="button" data-preset='Sleep Apnea'>Try Sleep Apnea example</button></div><div class="grid">{"".join(fields)}</div><button type="submit">Predict Sleep Disorder</button></form>
+<section class="card"><form id="form"><div class="presets"><button type="button" data-preset='Insomnia'>Try Insomnia example</button><button type="button" data-preset='Sleep Apnea'>Try Sleep Apnea example</button><button type="button" data-preset='None'>Try No Disorder example</button></div><div class="grid">{"".join(fields)}</div><button type="submit">Predict Sleep Disorder</button></form>
 <div id="result"><div>Prediction</div><div class="label" id="prediction"></div><div id="scores"></div></div>
 <p class="note">For educational use only; this is not medical advice or a clinical diagnosis.</p></section></main>
 <script>
 const form=document.querySelector('#form'), result=document.querySelector('#result');
-const presets={{'Insomnia':{insomnia_example},'Sleep Apnea':{apnea_example}}};
+const presets={{'Insomnia':{insomnia_example},'Sleep Apnea':{apnea_example},'None':{none_example}}};
 document.querySelectorAll('[data-preset]').forEach(button=>button.addEventListener('click',()=>{{
  const values=presets[button.dataset.preset]; Object.entries(values).forEach(([name,value])=>{{if(form.elements[name])form.elements[name].value=value}}); form.requestSubmit();
 }}));
