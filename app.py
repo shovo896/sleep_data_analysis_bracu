@@ -8,10 +8,9 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier, VotingClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
-from xgboost import XGBClassifier
 
 
 DATA_FILE = "Sleep_health_and_lifestyle_dataset (1).csv"
@@ -43,7 +42,7 @@ def load_and_clean_data() -> pd.DataFrame:
 
 
 def build_voting_model(X: pd.DataFrame, y: pd.Series) -> Pipeline:
-    """Build the Random Forest + XGBoost soft-voting pipeline from the notebook."""
+    """Build a lightweight tree-ensemble soft-voting pipeline."""
     categorical_columns = X.select_dtypes(include=["object"]).columns.tolist()
     numerical_columns = X.select_dtypes(exclude=["object"]).columns.tolist()
 
@@ -55,15 +54,12 @@ def build_voting_model(X: pd.DataFrame, y: pd.Series) -> Pipeline:
     )
 
     random_forest = RandomForestClassifier(n_estimators=200, random_state=42)
-    xgboost = XGBClassifier(
+    extra_trees = ExtraTreesClassifier(
         n_estimators=200,
-        learning_rate=0.05,
-        max_depth=5,
-        eval_metric="mlogloss",
         random_state=42,
     )
     voting_classifier = VotingClassifier(
-        estimators=[("rf", random_forest), ("xgb", xgboost)],
+        estimators=[("rf", random_forest), ("extra", extra_trees)],
         voting="soft",
     )
 
@@ -162,7 +158,7 @@ button{{margin-top:22px;width:100%;padding:14px;border:0;border-radius:12px;back
 #result{{display:none;margin-top:20px;padding:18px;border-radius:14px;background:#0a1728}} .label{{font-size:1.5rem;font-weight:800;color:#62dcff}}
 .bar{{height:9px;background:#203149;border-radius:9px;overflow:hidden;margin:5px 0 12px}} .fill{{height:100%;background:#6f8cff}} .note{{font-size:.8rem;color:#8292a9;margin-top:18px}}
 </style></head><body><main class="wrap"><h1>Sleep Disorder Prediction</h1>
-<p class="sub">Enter lifestyle and biometric information to obtain a prediction from the Random Forest + XGBoost soft-voting model.</p>
+<p class="sub">Enter lifestyle and biometric information to obtain a prediction from a tree-ensemble soft-voting model.</p>
 <section class="card"><form id="form"><div class="grid">{"".join(fields)}</div><button type="submit">Predict Sleep Disorder</button></form>
 <div id="result"><div>Prediction</div><div class="label" id="prediction"></div><div id="scores"></div></div>
 <p class="note">For educational use only; this is not medical advice or a clinical diagnosis.</p></section></main>
