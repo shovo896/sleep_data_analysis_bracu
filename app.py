@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -94,6 +95,12 @@ def get_artifacts() -> dict[str, Any]:
         }
         for column in numerical_columns
     }
+    class_examples = {
+        class_name: df.loc[df[TARGET_COLUMN] == class_name, X.columns]
+        .iloc[0]
+        .to_dict()
+        for class_name in label_encoder.classes_
+    }
 
     return {
         "model": model,
@@ -101,6 +108,7 @@ def get_artifacts() -> dict[str, Any]:
         "feature_columns": X.columns.tolist(),
         "categorical_choices": categorical_choices,
         "numerical_defaults": numerical_defaults,
+        "class_examples": class_examples,
         "examples": X.sample(n=min(3, len(X)), random_state=42).values.tolist(),
     }
 
@@ -128,22 +136,33 @@ app = FastAPI(title="Sleep Disorder Prediction")
 
 def render_page() -> str:
     artifacts = get_artifacts()
+    initial_values = artifacts["class_examples"]["Insomnia"]
     fields: list[str] = []
     for column in artifacts["feature_columns"]:
         if column in artifacts["categorical_choices"]:
             options = "".join(
-                f'<option value="{value}">{value}</option>'
+                f'<option value="{value}"'
+                f'{" selected" if value == str(initial_values[column]) else ""}'
+                f'>{value}</option>'
                 for value in artifacts["categorical_choices"][column]
             )
             control = f'<select name="{column}">{options}</select>'
         else:
             settings = artifacts["numerical_defaults"][column]
             control = (
-                f'<input type="number" name="{column}" value="{settings["value"]}" '
+                f'<input type="number" name="{column}" value="{initial_values[column]}" '
                 f'min="{settings["minimum"]}" max="{settings["maximum"]}" '
                 f'step="{settings["step"]}" required>'
             )
         fields.append(f'<label><span>{column}</span>{control}</label>')
+
+    json_default = lambda value: value.item()
+    insomnia_example = json.dumps(
+        artifacts["class_examples"]["Insomnia"], default=json_default
+    )
+    apnea_example = json.dumps(
+        artifacts["class_examples"]["Sleep Apnea"], default=json_default
+    )
 
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -155,16 +174,21 @@ def render_page() -> str:
 .grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}} label span{{display:block;font-size:.85rem;color:#b8c5d8;margin:0 0 7px}}
 input,select{{width:100%;padding:12px;border-radius:10px;border:1px solid #334963;background:#091525;color:#f5f8ff;font:inherit}}
 button{{margin-top:22px;width:100%;padding:14px;border:0;border-radius:12px;background:linear-gradient(135deg,#54d6ff,#7772ff);color:#06111d;font-weight:800;font-size:1rem;cursor:pointer}}
+.presets{{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 20px}} .presets button{{width:auto;margin:0;padding:9px 14px;background:#1b3049;color:#dceaff;border:1px solid #355475}}
 #result{{display:none;margin-top:20px;padding:18px;border-radius:14px;background:#0a1728}} .label{{font-size:1.5rem;font-weight:800;color:#62dcff}}
 .bar{{height:9px;background:#203149;border-radius:9px;overflow:hidden;margin:5px 0 12px}} .fill{{height:100%;background:#6f8cff}} .note{{font-size:.8rem;color:#8292a9;margin-top:18px}}
 </style></head><body><main class="wrap"><h1>Sleep Disorder Prediction</h1>
 <p class="sub">Enter lifestyle and biometric information to obtain a prediction from a tree-ensemble soft-voting model.</p>
-<section class="card"><form id="form"><div class="grid">{"".join(fields)}</div><button type="submit">Predict Sleep Disorder</button></form>
+<section class="card"><form id="form"><div class="presets"><button type="button" data-preset='Insomnia'>Try Insomnia example</button><button type="button" data-preset='Sleep Apnea'>Try Sleep Apnea example</button></div><div class="grid">{"".join(fields)}</div><button type="submit">Predict Sleep Disorder</button></form>
 <div id="result"><div>Prediction</div><div class="label" id="prediction"></div><div id="scores"></div></div>
 <p class="note">For educational use only; this is not medical advice or a clinical diagnosis.</p></section></main>
 <script>
 const form=document.querySelector('#form'), result=document.querySelector('#result');
-form.addEventListener('submit',async(e)=>{{e.preventDefault();const button=form.querySelector('button');button.disabled=true;button.textContent='Predicting…';
+const presets={{'Insomnia':{insomnia_example},'Sleep Apnea':{apnea_example}}};
+document.querySelectorAll('[data-preset]').forEach(button=>button.addEventListener('click',()=>{{
+ const values=presets[button.dataset.preset]; Object.entries(values).forEach(([name,value])=>{{if(form.elements[name])form.elements[name].value=value}}); form.requestSubmit();
+}}));
+form.addEventListener('submit',async(e)=>{{e.preventDefault();const button=form.querySelector('button[type="submit"]');button.disabled=true;button.textContent='Predicting…';
  const payload=Object.fromEntries(new FormData(form));
  try{{const response=await fetch('/api/predict',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify(payload)}});const data=await response.json();if(!response.ok)throw new Error(data.detail||'Prediction failed');
  document.querySelector('#prediction').textContent=data.prediction;document.querySelector('#scores').innerHTML=Object.entries(data.probabilities).sort((a,b)=>b[1]-a[1]).map(([name,value])=>`<div>${{name}} — ${{(value*100).toFixed(1)}}%</div><div class="bar"><div class="fill" style="width:${{value*100}}%"></div></div>`).join('');result.style.display='block';
