@@ -4,8 +4,9 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-import gradio as gr
 import pandas as pd
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.pipeline import Pipeline
@@ -126,52 +127,85 @@ def predict_sleep_disorder(*values: Any) -> tuple[str, dict[str, float]]:
     return str(label), scores
 
 
-def build_inputs() -> list[gr.Component]:
+app = FastAPI(title="Sleep Disorder Prediction")
+
+
+def render_page() -> str:
     artifacts = get_artifacts()
-    categorical_choices = artifacts["categorical_choices"]
-    numerical_defaults = artifacts["numerical_defaults"]
-
-    inputs: list[gr.Component] = []
+    fields: list[str] = []
     for column in artifacts["feature_columns"]:
-        if column in categorical_choices:
-            choices = categorical_choices[column]
-            inputs.append(gr.Dropdown(choices=choices, value=choices[0], label=column))
+        if column in artifacts["categorical_choices"]:
+            options = "".join(
+                f'<option value="{value}">{value}</option>'
+                for value in artifacts["categorical_choices"][column]
+            )
+            control = f'<select name="{column}">{options}</select>'
         else:
-            settings = numerical_defaults[column]
-            inputs.append(gr.Slider(label=column, **settings))
-    return inputs
+            settings = artifacts["numerical_defaults"][column]
+            control = (
+                f'<input type="number" name="{column}" value="{settings["value"]}" '
+                f'min="{settings["minimum"]}" max="{settings["maximum"]}" '
+                f'step="{settings["step"]}" required>'
+            )
+        fields.append(f'<label><span>{column}</span>{control}</label>')
+
+    return f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sleep Disorder Prediction</title>
+<style>
+*{{box-sizing:border-box}} body{{margin:0;font-family:Inter,system-ui,sans-serif;background:#07111f;color:#eaf2ff}}
+.wrap{{max-width:1050px;margin:auto;padding:48px 20px}} h1{{font-size:clamp(2rem,5vw,3.6rem);margin:0 0 10px}}
+.sub{{color:#a9b8cf;max-width:720px;line-height:1.6}} .card{{margin-top:28px;background:#101e31;border:1px solid #263a54;border-radius:22px;padding:24px;box-shadow:0 24px 70px #0006}}
+.grid{{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}} label span{{display:block;font-size:.85rem;color:#b8c5d8;margin:0 0 7px}}
+input,select{{width:100%;padding:12px;border-radius:10px;border:1px solid #334963;background:#091525;color:#f5f8ff;font:inherit}}
+button{{margin-top:22px;width:100%;padding:14px;border:0;border-radius:12px;background:linear-gradient(135deg,#54d6ff,#7772ff);color:#06111d;font-weight:800;font-size:1rem;cursor:pointer}}
+#result{{display:none;margin-top:20px;padding:18px;border-radius:14px;background:#0a1728}} .label{{font-size:1.5rem;font-weight:800;color:#62dcff}}
+.bar{{height:9px;background:#203149;border-radius:9px;overflow:hidden;margin:5px 0 12px}} .fill{{height:100%;background:#6f8cff}} .note{{font-size:.8rem;color:#8292a9;margin-top:18px}}
+</style></head><body><main class="wrap"><h1>Sleep Disorder Prediction</h1>
+<p class="sub">Enter lifestyle and biometric information to obtain a prediction from the Random Forest + XGBoost soft-voting model.</p>
+<section class="card"><form id="form"><div class="grid">{"".join(fields)}</div><button type="submit">Predict Sleep Disorder</button></form>
+<div id="result"><div>Prediction</div><div class="label" id="prediction"></div><div id="scores"></div></div>
+<p class="note">For educational use only; this is not medical advice or a clinical diagnosis.</p></section></main>
+<script>
+const form=document.querySelector('#form'), result=document.querySelector('#result');
+form.addEventListener('submit',async(e)=>{{e.preventDefault();const button=form.querySelector('button');button.disabled=true;button.textContent='Predicting…';
+ const payload=Object.fromEntries(new FormData(form));
+ try{{const response=await fetch('/api/predict',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify(payload)}});const data=await response.json();if(!response.ok)throw new Error(data.detail||'Prediction failed');
+ document.querySelector('#prediction').textContent=data.prediction;document.querySelector('#scores').innerHTML=Object.entries(data.probabilities).sort((a,b)=>b[1]-a[1]).map(([name,value])=>`<div>${{name}} — ${{(value*100).toFixed(1)}}%</div><div class="bar"><div class="fill" style="width:${{value*100}}%"></div></div>`).join('');result.style.display='block';
+ }}catch(error){{alert(error.message)}}finally{{button.disabled=false;button.textContent='Predict Sleep Disorder'}}
+}});
+</script></body></html>"""
 
 
-with gr.Blocks(title="Sleep Disorder Prediction") as demo:
-    gr.Markdown(
-        """
-        # Sleep Disorder Prediction
-        Enter lifestyle and biometric information to obtain a prediction from the
-        Random Forest + XGBoost soft-voting model.
+@app.get("/", response_class=HTMLResponse)
+def home() -> str:
+    return render_page()
 
-        *For educational use only; this is not medical advice or a clinical diagnosis.*
-        """
-    )
 
-    with gr.Row():
-        with gr.Column():
-            inputs = build_inputs()
-            predict_button = gr.Button("Predict Sleep Disorder", variant="primary")
-        with gr.Column():
-            predicted_label = gr.Textbox(label="Predicted Sleep Disorder")
-            probabilities = gr.Label(label="Class Probabilities", num_top_classes=3)
+@app.get("/api/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
 
-    gr.Examples(
-        examples=get_artifacts()["examples"],
-        inputs=inputs,
-        label="Try an example",
-    )
-    predict_button.click(
-        fn=predict_sleep_disorder,
-        inputs=inputs,
-        outputs=[predicted_label, probabilities],
-    )
+
+@app.post("/api/predict")
+def predict(payload: dict[str, Any]) -> dict[str, Any]:
+    artifacts = get_artifacts()
+    try:
+        values = []
+        for column in artifacts["feature_columns"]:
+            value = payload[column]
+            values.append(
+                str(value)
+                if column in artifacts["categorical_choices"]
+                else float(value)
+            )
+        label, scores = predict_sleep_disorder(*values)
+        return {"prediction": label, "probabilities": scores}
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=f"Invalid input: {exc}") from exc
 
 
 if __name__ == "__main__":
-    demo.launch()
+    import uvicorn
+
+    uvicorn.run(app, host="127.0.0.1", port=8000)

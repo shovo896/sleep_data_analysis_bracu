@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "app.py": {
+      "maxDuration": 300,
+      "excludeFiles": "{**/*.ipynb,**/*.tex,**/*.bib,**/*.png,**/*.pdf,**/*.zip,__pycache__/**,models/**,ratan_mara_proposal/**,sensorTest_audit/**,tubitak_submission/**,visual_check/**}"
+    }
+  }
+}

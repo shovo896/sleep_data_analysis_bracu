@@ -1,0 +1,16 @@
+.git
+.vercel
+__pycache__
+*.ipynb
+*.tex
+*.bib
+*.png
+*.pdf
+*.zip
+*.log
+models
+ratan_mara_proposal
+sensorTest_audit
+tubitak_submission
+visual_check
+streamlit_app.py

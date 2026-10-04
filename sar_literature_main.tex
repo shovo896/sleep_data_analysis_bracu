@@ -1,0 +1,193 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper,margin=24mm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,tabularx,array,multirow}
+\usepackage{ragged2e}
+\usepackage[section]{placeins}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\usepackage{caption}
+
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+\captionsetup{font=small,labelfont=bf}
+\setlength{\tabcolsep}{4.2pt}
+\setlength{\emergencystretch}{1em}
+\renewcommand{\arraystretch}{1.12}
+
+\title{Recent Advances in Synthetic Aperture Radar Image Despeckling: A Focused Review}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Literature Review}
+
+Synthetic aperture radar (SAR) is indispensable for all-weather, day--night Earth observation, yet its coherent imaging mechanism produces signal-dependent speckle. Speckle is not merely an additive visual disturbance: it is entangled with the scattering process and can obscure weak targets, reduce local contrast, destabilise segmentation, and alter the statistics used for quantitative interpretation. For an intensity product, the customary first-order model is
+\begin{equation}
+Y(\mathbf{r})=X(\mathbf{r})S(\mathbf{r}), \qquad
+\mathbb{E}[S]=1, \qquad \operatorname{Var}(S)=\frac{1}{L},
+\label{eq:speckle}
+\end{equation}
+where $X$ denotes latent backscatter intensity, $S$ is multiplicative speckle, and $L$ is the equivalent number of looks. This abstraction is analytically convenient, but focused and resampled SAR products can exhibit spatially correlated, scene-dependent speckle. More fundamentally, intensity is only a marginal representation of the complex return. A despeckler that ignores phase may therefore suppress intensity fluctuations while discarding information carried by the underlying complex signal.
+
+Recent research has progressively converged on four requirements: direct modelling of real SAR statistics, learning without idealised clean targets, explicit control of structural information, and validation beyond visual smoothness. Xiong et al. combine these requirements in PDE-guided complex self-supervised diffusion despeckling (PCSDD), evaluated on 1-m Gaofen-3 (GF-3) complex SAR imagery \cite{Xiong2026PCSDD}. Their formulation is considered alongside model-based optimisation, supervised restoration, diffusion modelling, blind-spot learning, polarimetric methods, and frequency-aware networks published during 2023--2026. The resulting comparison is organised by methodological assumptions and strength of evidence rather than by treating reported accuracy or image-quality scores from incompatible datasets as directly exchangeable.
+
+\subsection{PDE-guided complex self-supervised despeckling}
+
+PCSDD starts from the premise that the most defensible learning domain is the complex signal rather than an amplitude image detached from its phase. If the observed single-look complex return is written schematically as
+\begin{equation}
+Z(\mathbf{r})=X_c(\mathbf{r})N_c(\mathbf{r})+\varepsilon(\mathbf{r}),
+\label{eq:complex-observation}
+\end{equation}
+then $X_c$ is the latent complex backscatter, $N_c$ represents coherent speckle, and $\varepsilon$ denotes a usually small additive component. Equation~\eqref{eq:complex-observation} clarifies why amplitude-only restoration is incomplete: both real and imaginary components participate in the observation statistics, and phase consistency is relevant to later interferometric or scattering-sensitive analysis.
+
+The conceptual contribution of PCSDD is to retain the divergence--gradient structure of anisotropic diffusion while learning the spatially and temporally varying conductance and a score-correction term. A concise representation of one deterministic iteration is
+\begin{equation}
+U^{k+1}=U^{k}+\Delta t\left[
+\nabla\!\cdot\!\left(c_{\theta}(U^{k},k)\nabla U^{k}\right)
++\lambda_k s_{\phi}(U^{k},k)
+\right],
+\label{eq:pcsdd-update}
+\end{equation}
+where $c_{\theta}$ is a learned conductance function, the first term is the PDE-derived anisotropic drift, $s_{\phi}$ is a network-estimated score correction, and $\lambda_k$ controls their relative influence. The update is deliberately not a generic black-box denoiser. The PDE term specifies a structure-preserving direction, whereas the learned correction compensates for mismatch between a hand-designed diffusion law and the empirical distribution of real SAR data. The published implementation uses a shared complex U-Net backbone with separate PDE-drift and score-correction branches \cite{Xiong2026PCSDD}.
+
+Clean GF-3 targets are not required. Instead, PCSDD masks selected pixels, reconstructs their neighbourhoods without exposing the centre value, and accumulates supervision only on the masked locations. Its training criterion can be summarised as
+\begin{equation}
+\mathcal{L}_{\mathrm{PCSDD}}
+=\alpha\mathcal{L}_{\mathrm{stat}}
++\beta\mathcal{L}_{\mathrm{PDE}}
++\gamma\mathcal{L}_{\mathrm{mask}},
+\label{eq:pcsdd-loss}
+\end{equation}
+where the three terms enforce multiplicative-noise likelihood, consistency with the anisotropic PDE dynamics, and blind-spot reconstruction, respectively. The significance of this formulation lies in the separation of responsibilities: statistical compatibility constrains the residual, PDE consistency limits physically implausible evolution, and masked prediction prevents direct centre-pixel copying.
+
+Xiong et al. report experiments on GF-3 C-band single-look complex imagery at 1-m spatial resolution, spanning homogeneous sea and heterogeneous urban scenes acquired in different imaging modes. All compared methods share the same data distribution, preprocessing, equivalent number of looks, and train--validation--test partition; no external data or pretrained model is used. PCSDD is compared with Lee filtering, SRAD, SAR-BM3D, S2V, CL-SAR, and CCM+SimiTest. The evidence comprises equivalent number of looks (ENL), speckle-suppression index (SSI), edge-preservation index (EPI), mean preservation (MP), visual residual behaviour, and segmentation with the Segment Anything Model (SAM) \cite{Xiong2026PCSDD}. This is methodologically stronger than reporting one smoothness metric, although the absence of an exact clean reference means that performance on real GF-3 is inferred from complementary indicators rather than measured through direct reconstruction error.
+
+\subsection{Comparison with recent despeckling paradigms}
+
+The 2023--2026 literature can be read as a sequence of responses to three persistent constraints: the lack of clean SAR targets, the inadequacy of purely local priors, and the difficulty of preserving high-frequency structure while suppressing multiplicative fluctuations. Recent model-based methods retain explicit observation assumptions. LogSAR-NLMD combines logarithmic stabilisation with nonlocal low-rank decomposition for multitemporal data, while BEMD and Fourier-domain methods improve adaptive filtering through structured decompositions \cite{Kang2023LogSAR,Painam2023BEMD,Jain2023DFT}. Edge-aware nonlinear diffusion introduces high-order and fractional regularisation, and subaperture low-rank tensor approximation exploits coherent structural redundancy without exchanging full-aperture resolution for conventional multilooking \cite{Bua2024EdgeAware,An2025Subaperture}. These methods retain interpretable priors, but their fixed regularisation structure can be less adaptive in heterogeneous urban scenes.
+
+Supervised networks employ pyramidal attention and multiscale convolution \cite{Yasmeen2023PAN,Wen2023SAMSCNN}. MAP priors, correlated channels, and semantic context provide alternative forms of guidance \cite{Zhu2023PBDNN,Saha2025CDCFRN,Bo2026SemDNet}. Hybrid models combine a modified diffusion process with wavelets and CNN refinement \cite{Baraha2025Hybrid}. A complementary design learns jointly from gradient, spatial, and frequency representations \cite{Saha2026MultiChannel}.
+
+Diffusion-based methods recast despeckling as iterative conditional restoration. SAR-DDPM introduces cycle-spinning inference; later variants incorporate a log--Yeo--Johnson transformation or a Swin Transformer to address multiplicative degradation and long-range dependence \cite{Perera2023SARDDPM,Ma2024ConditionalDiffusion,Pan2024SwinDiffusion}. PCSDD is distinguished by learning from real complex GF-3 observations without clean targets and by constraining its iterative dynamics through an anisotropic PDE rather than relying solely on a learned reverse process.
+
+Self-supervised methods differ principally in the information used to make an otherwise underdetermined restoration problem identifiable. S3Net combines supervised and self-supervised objectives; S3DIP uses an image-specific prior with speckle-statistical guidance; and speckle-driven unsupervised learning avoids paired targets \cite{Liu2024S3Net,Albisani2025S3DIP,Bo2025SpeckleDriven}. GLCNet couples global blind-spot and local structure-aware branches, whereas SDS-SAR derives mutually supervised pairs from intensity-only observations \cite{Yang2026GLCNet,Chen2026SDSSAR}. Other studies exploit task or acquisition structure: joint compression--despeckling learns a rate--distortion representation, MTDN integrates dual-temporal dual-polarisation evidence with change detection, and a non-generative Sentinel-1 model jointly performs despeckling and super-resolution \cite{Amao2025Joint,Li2025MTDN,Amieva2026Joint}. PCSDD requires complex data but gains access to phase-aware representations and an explicit PDE prior. The relevant distinction is therefore not network size; it is whether identifiability is supplied by paired references, temporal redundancy, polarimetric structure, blind-spot independence, an image prior, or physically constrained complex evolution.
+
+\begin{table}[t]
+\centering
+\caption{Comparison of representative SAR despeckling methods published during 2023--2026. The evidence boundary records the principal condition that limits direct comparison across studies.}
+\label{tab:methods}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.16\textwidth}L{0.15\textwidth}L{0.25\textwidth}Y@{}}
+\toprule
+Method & Learning setting & Core mechanism and signal domain & Principal strength and evidence boundary \\
+\midrule
+PCSDD (2026) \cite{Xiong2026PCSDD} & Self-supervised; complex GF-3 SLC & Learned anisotropic-PDE conductance and score correction in a complex U-Net & Integrates physical iteration and real-SAR learning; no exact clean reference is available \\
+LogSAR-NLMD (2023) \cite{Kang2023LogSAR} & Model-based; multitemporal intensity & Log-domain nonlocal decomposition with low-rank and sparse terms & Interpretable alternative, but requires registered time series and explicit change separation \\
+SAR-DDPM (2023) \cite{Perera2023SARDDPM} & Supervised diffusion; amplitude/intensity & Conditional reverse diffusion with cycle-spinning inference & Establishes diffusion restoration, but depends on paired or simulated supervision \\
+Edge-aware diffusion (2024) \cite{Bua2024EdgeAware} & Model-based; intensity & High-order diffusion and fractional edge-sensitive regularisation & Explicit optimisation and edge control; parameters remain hand specified \\
+PGD2Net (2024) \cite{Guan2024NearReal} & Supervised; near-real intensity & Deep prior-guided training from temporally constructed references & Reduces the synthetic-to-real gap, although pseudo-target bias remains \\
+CL-SAR (2024) \cite{Fang2024Contrastive} & Contrastive and restoration learning & Speckle-aware representation across synthetic, near-real, and real domains & Models domain transfer; residual distribution shift can bias restored radiometry \\
+S3DIP (2025) \cite{Albisani2025S3DIP} & Self-supervised; image-specific & Deep image prior with statistical and denoiser-guidance losses & Avoids paired data but requires optimisation for each observation \\
+MTDN (2025) \cite{Li2025MTDN} & Multitask; dual-temporal and dual-polarisation & Change detection and polarimetric information constrain despeckling & Uses rich acquisition evidence; depends on registration and change discrimination \\
+Subaperture-NLRT (2025) \cite{An2025Subaperture} & Model-based; subaperture tensor & Nonlocal low-rank approximation with edge regularisation & Preserves aperture-derived structure; iterative tensor processing increases cost \\
+GLCNet (2026) \cite{Yang2026GLCNet} & Self-supervised; intensity & Global blind-spot and local structure branches with wavelet shuffle & Combines spatial scales on real data; does not exploit complex phase \\
+SDS-SAR (2026) \cite{Chen2026SDSSAR} & Self-supervised; intensity only & Random-aware subsampling, decorrelation, and multi-feature consistency & More broadly deployable when SLC data are unavailable; pair validity depends on residual correlation \\
+Joint SR--despeckling (2026) \cite{Amieva2026Joint} & Supervised; Sentinel-1 modes & Non-generative network maps IW data to stripmap-informed references & Improves resolution and speckle jointly; mode-specific supervision limits transfer \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Statistical and physical constraints}
+
+Physics guidance is scientifically meaningful only when it constrains a defined inverse problem and yields testable consequences. A generic maximum-a-posteriori estimator can be written as
+\begin{equation}
+\widehat{X}=\arg\min_{X>0}\left\{-\log p(Y\mid X,L)+\lambda\mathcal{R}(X)\right\},
+\label{eq:map}
+\end{equation}
+where the likelihood represents the SAR observation model and $\mathcal{R}$ expresses spatial, nonlocal, spectral, or learned prior knowledge. Recent variational reviews, MAP-guided networks, transformed diffusion models, and image-specific priors instantiate different parts of Equation~\eqref{eq:map} \cite{Baraha2023Review,Zhu2023PBDNN,Ma2024ConditionalDiffusion,Albisani2025S3DIP}.
+
+PCSDD advances this logic by making the regularising dynamics explicit in Equation~\eqref{eq:pcsdd-update}. The instantaneous coefficient of variation separates homogeneous regions from structural transitions, and the learned conductance adapts the diffusion strength without discarding the PDE form. This hybridisation is compelling, but its claims require careful qualification. A learned coefficient is not automatically physically valid; boundedness, energy behaviour, stability with respect to the time step, and sensitivity to equivalent number of looks must be examined. Likewise, a blind-spot loss is unbiased only to the extent that the masked value is conditionally independent of the neighbourhood given the latent signal. Focusing, resampling, and multilooking may weaken that assumption by introducing correlated speckle.
+
+A rigorous GF-3 evaluation should therefore test observable consequences rather than invoke ``physics-informed'' as a stylistic descriptor. The ratio image $R=Y/\widehat{X}$ should approach unit mean and exhibit no residual scene structure in homogeneous regions; strong scatterers and radiometric ordering should be retained; and the denoised output should improve downstream interpretation without hallucinating edges. PCSDD's combined ENL, SSI, EPI, MP, and segmentation evidence is aligned with this requirement, but independent scenes, repeated training runs, and uncertainty intervals are needed to distinguish a robust gain from a favourable split.
+
+\subsection{Frequency and multiscale structure preservation}
+
+Frequency-aware processing addresses an ambiguity at the centre of SAR restoration: speckle and genuine structure can occupy overlapping high-frequency bands. Zhao et al. use explicit frequency-domain decomposition, whereas log-transformed conditional diffusion and Swin-based diffusion combine degradation modelling with nonlocal context \cite{Zhao2024Frequency,Ma2024ConditionalDiffusion,Pan2024SwinDiffusion}. Noise-guided Transformer fusion similarly conditions long-range attention on an estimated noise field \cite{Zhang2025NGT}. These models demonstrate that local convolution alone is insufficient for large structures and heterogeneous textures.
+
+PCSDD approaches the same problem from a different direction. Its anisotropic drift suppresses diffusion across statistically salient boundaries, while the complex U-Net and score branch learn multiscale distributional adjustments. In principle, this avoids labelling all high-frequency energy as noise. In practice, the claim must be tested on GF-3 point targets, ships, building boundaries, roads, water and land transitions, and repeated urban textures. Edge preservation should be reported jointly with residual structure because an EPI near unity can arise from either faithful edges or retained speckle. The sound design principle is joint spatial, statistical, and spectral validation, rather than unconditional attenuation of high frequencies.
+
+\subsection{GF-3 dataset focus and benchmark context}
+
+GF-3 provides real C-band complex SAR observations on which self-supervised learning can be performed without constructing targets from optical images. PCSDD uses 1-m GF-3 SLC imagery containing at least homogeneous sea and heterogeneous urban scenes, with stripmap and spotlight examples described in its evaluation \cite{Xiong2026PCSDD}. The study standardises radiometric calibration, spatial cropping, amplitude normalisation, equivalent number of looks, and the partition into training, validation, and testing data across all methods. These controls constitute minimum reproducibility requirements for subsequent GF-3 experiments.
+
+The dataset requires more than a sensor name. A reproducible report should list the product level, polarisation, mode, incidence angles, orbit and scene IDs (subject to licence), calibration, patch count and size, land-cover mix, and geographic separation of the data partitions. Random patch splitting is invalid when adjacent crops from one scene cross partition boundaries; their spatial correlation would inflate the estimate of generalisation. Testing should therefore hold out complete scenes or acquisitions.
+
+\begin{table}[t]
+\centering
+\caption{Comparison of dataset and supervision designs used in recent SAR despeckling studies. Particular attention is given to GF-3 because it supports both complex-domain and intensity-domain self-supervision.}
+\label{tab:datasets}
+\footnotesize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabularx}{\textwidth}{@{}L{0.19\textwidth}L{0.17\textwidth}L{0.21\textwidth}Y Y@{}}
+\toprule
+Dataset/corpus & Sensor and signal domain & Reference or supervision & Principal value & Evidence boundary \\
+\midrule
+PCSDD GF-3 corpus \cite{Xiong2026PCSDD} & GF-3 C-band SLC; 1-m complex imagery & Blind-spot self-supervision on real observations & Homogeneous sea and heterogeneous urban scenes; matched preprocessing and splits & No exact clean reference; acquisition inventory and independent replication must be reported \\
+GF-3 real-SAR evaluation \cite{Yang2026GLCNet} & GF-3 intensity imagery & Global--local blind-spot learning & Independent evidence that GF-3 supports real-image self-supervision & Intensity-only design cannot validate phase preservation \\
+Labeled Sentinel-1 dataset \cite{Vasquez2024Dataset} & Sentinel-1 intensity; coastal, urban, and rural imagery & Registered multitemporal pseudo-clean targets & 1,600 noisy and 1,600 matched $512\!\times\!512$ reference patches & Temporal averaging can retain blur, change, and registration bias \\
+Near-real benchmark \cite{Guan2024NearReal,Fang2024Contrastive} & Sentinel-1 training; Capella-X and TerraSAR-X testing & Temporally aggregated and simulated references & Tests domain-gap learning and cross-sensor behaviour & Sensor and temporal effects remain partly confounded \\
+Conditional-diffusion corpus \cite{Ma2024ConditionalDiffusion} & Synthetic training; ALOS, Sentinel-1, and TerraSAR-X tests & Exact synthetic references plus unpaired real data & Separates full-reference development from multi-sensor real-SAR assessment & Synthetic corruption cannot reproduce the complete GF-3 processing chain \\
+MERLIN-Seg benchmark \cite{Dalsasso2024MERLINSeg} & EMPRISE simulation and TerraSAR-X & Self-supervision plus building labels & Connects restoration to label-efficient semantic segmentation & Task-specific evidence is not a universal image-quality ranking \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Across these corpus designs, the most informative distinction is not whether a dataset is labelled ``real'', but how its supervisory reference is constructed. The comparison by Cardona-Mesa et al. uses actual SAR imagery to examine conventional, generative, and attention-based despecklers, reinforcing the need to disclose whether performance arises from sensor-consistent data or from an idealised corruption model \cite{CardonaMesa2025GenAI}.
+
+\subsection{Evaluation protocol for a credible GF-3 study}
+
+The comparative controls used by Xiong et al. provide a defensible protocol: every baseline receives the same calibrated GF-3 inputs, the same train--validation--test split, and no undeclared external data \cite{Xiong2026PCSDD}. Classical filters should be tuned only on the validation region; learned models should use identical training scenes; and all performance claims should be computed on untouched test acquisitions. The comparison set should include interpretable filtering, nonlocal restoration, blind-spot self-supervision, and physics-guided complex learning. Where code or weights are unavailable, the distinction between author-reported and independently reproduced results must be explicit.
+
+Full-reference PSNR and SSIM are not valid for an unpaired real GF-3 acquisition because the latent reflectivity is unknown. They may be reported only in a separate controlled simulation based on GF-3-derived clean proxies, and should not be conflated with real-data performance. For real GF-3, ENL and SSI should be paired with EPI, MP, ratio-image diagnostics, and downstream segmentation or detection. Statistical reporting should include means and confidence intervals over independent scenes or repeated runs, together with a paired test or bootstrap interval for model differences.
+
+\begin{table}[t]
+\centering
+\caption{Recommended evidence matrix for reproducing and extending PCSDD on GF-3. Each layer answers a different question; no single metric is sufficient for a general superiority claim.}
+\label{tab:evaluation}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}L{0.19\textwidth}L{0.22\textwidth}Y Y@{}}
+\toprule
+Evidence layer & GF-3 data unit & Measures and controls & Valid interpretation \\
+\midrule
+Noise suppression & Predefined homogeneous regions from held-out scenes & ENL, coefficient of variation, SSI; identical regions for every method & Quantifies smoothness, but high ENL alone may reward oversmoothing \\
+Structural fidelity & Ships, point targets, roads, and urban boundaries & EPI, gradient correlation, local contrast, strong-scatterer response & Tests whether suppression preserves interpretable high-frequency structure \\
+Radiometric fidelity & Calibrated heterogeneous regions & MP, histogram/order consistency, region-wise backscatter change & Detects global or land-cover-specific intensity bias \\
+Residual diagnostics & Ratio image $Y/\widehat{X}$ and residual autocorrelation & Mean near one, coefficient of variation, spatial whiteness, residual maps & Scene structure in the ratio indicates signal removal or model bias \\
+Task-level utility & Held-out GF-3 segmentation or detection scenes & Identical downstream model; task metric before and after despeckling & Establishes operational utility without treating visual smoothness as truth \\
+Uncertainty and significance & Scene-level scores and repeated training seeds & Bootstrap confidence intervals, paired permutation/Wilcoxon test, effect size & Distinguishes stable improvement from split or seed variation \\
+Efficiency and reproducibility & Fixed crop size and hardware & Parameters, FLOPs, memory, runtime, iteration count, code and seeds & Essential when iterative PCSDD is compared with feed-forward models \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\FloatBarrier
+
+\subsection{Critical synthesis and research gap}
+
+PCSDD represents a substantive advance because it integrates four elements that are too often studied separately: complex-domain evidence, a mathematically legible anisotropic prior, self-supervision on real SAR, and downstream validation. Its contribution is therefore more than the addition of a diffusion backbone. The important move is the division of labour between the PDE drift and the learned score correction: one constrains the direction of evolution, while the other adapts that evolution to empirical GF-3 statistics. This formulation is more interpretable than an unconstrained network and more adaptable than a fixed SRAD-type filter.
+
+The study nevertheless leaves a well-defined research space. First, GF-3 scene diversity and acquisition-level separation require fuller documentation before generalisation can be assessed. Second, complex-domain restoration should be evaluated not only through amplitude-derived metrics but also through phase/coherence consistency when suitable data are available. Third, the stability of the learned conductance and the sensitivity of Equation~\eqref{eq:pcsdd-update} to step size, number of iterations, equivalent number of looks, and masking ratio should be established through ablation. Fourth, comparisons require uncertainty estimates and matched computational budgets. Finally, downstream SAM results are persuasive qualitative evidence, but task utility should be quantified with fixed labels and metrics on held-out GF-3 scenes.
+
+These gaps motivate further investigation using GF-3 rather than a change of dataset. A rigorous design should preserve complex, self-supervised, and PDE-guided principles while adding acquisition-disjoint evaluation, explicit stability analysis, residual spatial tests, phase-aware diagnostics, and statistically supported downstream performance. Such a study would not merely claim better denoising; it would demonstrate which information is suppressed, which information is preserved, and under what GF-3 acquisition conditions the conclusion remains valid.
+
+\bibliographystyle{unsrt}
+\bibliography{refs}
+
+\end{document}

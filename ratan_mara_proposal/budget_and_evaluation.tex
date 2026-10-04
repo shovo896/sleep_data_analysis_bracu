@@ -1,0 +1,146 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+
+\title{Bangladesh Marketplace Budget and Evaluation Plan for A$^2$SNN}
+\author{Author Name}
+\date{Market survey date: 2 September 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Purpose}
+This file gives a Bangladesh-marketplace-style procurement budget for the A$^2$SNN microcontroller experiment. Prices are written in BDT and should be treated as working estimates because local electronics prices change with stock, import source, delivery charge, and seller warranty.
+
+\section*{Budget Assumptions}
+\begin{itemize}
+    \item Target platform: ESP32-S3 class board for the main implementation.
+    \item Secondary comparison platform: ARM Cortex-M development board if the final thesis needs cross-MCU comparison.
+    \item Measurement goal: report accuracy, latency, cycles, flash, SRAM, board-level power, and energy per inference.
+    \item Buying mode: Bangladesh online electronics shops and marketplaces such as TechShopBD, RoboticsBD, ElectroXBD, BDTronics, Daraz, or equivalent local sellers.
+    \item Delivery charge, VAT, and import delay are estimated separately because they depend on seller and city.
+    \item Final thesis/paper values must use invoice prices and measured hardware data.
+\end{itemize}
+
+\section*{Core Hardware Procurement}
+\small
+\begin{tabular}{p{4.1cm}cccp{4.9cm}}
+\toprule
+Item & Qty. & Unit Price (BDT) & Subtotal (BDT) & Local-market note \\
+\midrule
+ESP32-S3 N16R8 development board & 2 & 900--1,700 & 1,800--3,400 & One main board and one spare. Common BD listings show ESP32-S3 boards around BDT 900, BDT 980, BDT 1,590, and BDT 1,665 depending on seller and variant. \\
+ARM Cortex-M development board & 1 & 1,500--4,500 & 1,500--4,500 & Optional comparison board for showing that the inference engine is MCU-oriented, not ESP32-only. Use STM32 Nucleo, Arduino Nano BLE class, or similar local equivalent. \\
+ESP32-S3 camera board or camera module & 1 & 1,000--3,500 & 1,000--3,500 & Needed only if the final demo uses live vision input. Offline CIFAR/MNIST-style input does not require this. \\
+INA219 current sensor module & 2 & 200--350 & 400--700 & Low-cost current and voltage logging. Two units allow cross-checking or one spare. \\
+USB power meter / USB tester & 1 & 200--700 & 200--700 & Quick board-level USB power reading. Useful for sanity check, not a replacement for calibrated measurement. \\
+USB 8-channel logic analyzer & 1 & 890--1,300 & 890--1,300 & GPIO pulse timing around inference; useful for latency validation. \\
+Breadboard and jumper wire set & 2 & 140--250 & 280--500 & For measurement wiring and sensor connections. \\
+USB Type-C data cables & 3 & 150--300 & 450--900 & Keep separate cables for flashing, power measurement, and backup. \\
+MicroSD card or logging storage & 1 & 300--600 & 300--600 & Optional local logging for latency, event count, and power samples. \\
+Headers, resistors, small connectors & 1 lot & 300--800 & 300--800 & Practical lab consumables for stable wiring. \\
+Prototype PCB or perfboard & 1--2 & 300--1,000 & 300--2,000 & Useful for a clean final demonstration board. \\
+\midrule
+\textbf{Core hardware subtotal} & & & \textbf{7,420--18,900} & Covers a serious thesis prototype setup. \\
+\bottomrule
+\end{tabular}
+\normalsize
+
+\section*{Measurement and Lab Instrument Options}
+\small
+\begin{tabular}{p{4.1cm}cccp{4.9cm}}
+\toprule
+Item & Qty. & Unit Price (BDT) & Subtotal (BDT) & Why it matters \\
+\midrule
+Entry digital multimeter & 1 & 500--1,500 & 500--1,500 & Basic voltage and continuity checks. \\
+Better digital multimeter & 1 & 2,000--5,000 & 2,000--5,000 & Recommended if repeated current readings are needed. \\
+Bench power supply or regulated supply module & 1 & 2,000--8,000 & 2,000--8,000 & Stable input voltage makes energy measurement more defensible. \\
+USB power logger / better USB meter & 1 & 700--1,900 & 700--1,900 & Better than the cheapest USB tester if it records voltage/current more consistently. \\
+Entry oscilloscope or portable scope & 1 & 6,000--20,000 & 6,000--20,000 & Optional but valuable for timing, noise, and power-rail inspection. \\
+Dedicated power profiler, if available & 1 & 10,000--35,000 & 10,000--35,000 & Best option for credible energy traces; may require import or institutional lab access. \\
+\midrule
+\textbf{Measurement subtotal} & & & \textbf{21,200--71,400} & Buy selectively; lab borrowing can reduce cost. \\
+\bottomrule
+\end{tabular}
+\normalsize
+
+\section*{Software, Cloud, and Documentation Budget}
+\small
+\begin{tabular}{p{4.2cm}cccp{4.8cm}}
+\toprule
+Item & Qty. & Unit Price (BDT) & Subtotal (BDT) & Note \\
+\midrule
+Overleaf or collaborative writing & 1 & 0--2,000 & 0--2,000 & Free plan may be enough; paid plan is optional. \\
+Cloud GPU experimentation & 1 & 0--5,000 & 0--5,000 & Use local GPU first if available. Budget only if training runs become heavy. \\
+Printing and binding draft copies & 2--4 & 300--800 & 600--3,200 & Proposal, defense, and supervisor copies. \\
+Poster or presentation materials & 1 & 800--2,500 & 800--2,500 & Optional final demonstration expense. \\
+Contingency for price change and replacement & 1 & 10--15\% & 3,000--12,000 & Covers stock changes, courier, replacement, and small missing parts. \\
+\midrule
+\textbf{Support subtotal} & & & \textbf{4,400--24,700} & Depends heavily on institutional resources. \\
+\bottomrule
+\end{tabular}
+\normalsize
+
+\section*{Total Budget Tiers}
+\begin{tabular}{p{4.0cm}p{6.1cm}cc}
+\toprule
+Tier & Included items & Estimated Total (BDT) & Use case \\
+\midrule
+Minimum prototype & One ESP32-S3, INA219, USB tester, wires, cable, delivery & 2,000--4,500 & Can run firmware and report approximate board-level power. \\
+Balanced thesis setup & Core hardware with spare ESP32-S3, logic analyzer, better wiring, and support buffer & 8,000--20,000 & Strongest practical option for an undergraduate or early MSc thesis. \\
+Full thesis lab setup & Balanced setup plus ARM comparison board, camera option, better meter, regulated supply, and printing & 25,000--55,000 & Good for a polished research project with defensible hardware measurements. \\
+Publication-grade measurement setup & Full setup plus oscilloscope or dedicated power profiler & 55,000--110,000 & Best if the paper strongly claims measured energy efficiency. \\
+\bottomrule
+\end{tabular}
+
+\section*{Target Hardware Resource Budget}
+\begin{tabular}{lll}
+\toprule
+Resource & Target & Notes \\
+\midrule
+Flash for model & $\leq$ 512 KB & INT8 weights, thresholds, sparse index tables \\
+Peak SRAM & $\leq$ 128 KB & membrane states, queues, counters, input buffer \\
+Maximum timesteps & 16 & early exit should reduce average timestep count \\
+Weight precision & INT8 & signed integer weights \\
+Spike precision & 1 bit & event queue or bit-packed representation \\
+State precision & INT16 or INT32 & select after overflow analysis \\
+Latency target & measured value & ms per sample on final board \\
+Energy target & measured value & mJ per inference from measured power \\
+\bottomrule
+\end{tabular}
+
+\section*{Minimum Experiments}
+\begin{enumerate}
+    \item Train compact ANN baseline.
+    \item Train or convert fixed-duration SNN baseline.
+    \item Quantize SNN weights to INT8.
+    \item Implement dense MCU inference loop.
+    \item Implement sparse event-driven MCU inference loop.
+    \item Add confidence-aware early exit.
+    \item Measure latency, cycles, flash, SRAM, power, and energy.
+    \item Repeat for at least three random seeds if training variance is significant.
+    \item Repeat on a second MCU if cross-platform generality is claimed.
+\end{enumerate}
+
+\section*{Ablation Table Template}
+\begin{tabular}{lcccccc}
+\toprule
+Method & Accuracy & Flash & SRAM & Latency & Avg. T & Energy \\
+\midrule
+Compact ANN & -- & -- & -- & -- & -- & -- \\
+Fixed SNN & -- & -- & -- & -- & -- & -- \\
+INT8 SNN & -- & -- & -- & -- & -- & -- \\
+INT8 + Sparse & -- & -- & -- & -- & -- & -- \\
+INT8 + Sparse + Early Exit & -- & -- & -- & -- & -- & -- \\
+Full A$^2$SNN & -- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+
+\section*{Measurement Notes}
+For latency, wrap inference with a GPIO toggle and confirm timing with a logic analyzer when possible. For power, record supply voltage, current measurement method, sampling rate, and whether USB serial, Wi-Fi, camera, and LEDs are enabled. Do not present USB-tester readings as chip-only energy; label them as board-level energy.
+
+\section*{Local Price References}
+The budget ranges were prepared from current Bangladesh listings observed on 2 September 2026. Example references include ESP32-S3 prices from TechShopBD, RoboticsBD, and ElectroXBD; INA219 prices from RoboticsBD, ElectroXBD, TechShopBD, and Daraz; USB tester prices from Electronics.com.bd, Daraz, TechShopBD, and RoboticsBD; jumper wire prices from RoboticsBD, TechShopBD, and BDTronics; and logic analyzer prices from RoboticsBD and BDTronics.
+
+\end{document}
