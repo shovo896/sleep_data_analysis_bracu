@@ -1,0 +1,73 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parskip}{0.25em}
+\sloppy
+\begin{document}
+
+\begin{center}
+{\Large Response to Reviewers}\\[0.5em]
+\textbf{Manuscript NEURI-D-26-00299}\\
+\emph{Duplicate-Aware Validation of Machine-Learning Models for Recorded Sleep-Status Labels in a Public Lifestyle Dataset}
+\end{center}
+
+We thank the editor and reviewers. The revision changes both the analysis and the manuscript. We verified that ``None'' is a literal source-file category, identified extensive duplicate predictor profiles, replaced the single random hold-out analysis with repeated duplicate-aware validation, released executable code and observation-level predictions, removed unsupported explainability figures, and narrowed the work to a reproducibility-focused benchmark audit. The earlier 97.33\% single-split result is not retained as a primary finding.
+
+\section*{Reviewer 1}
+\begin{enumerate}
+\item \textbf{Outcome coding.} The CSV is now read with missing-value conversion disabled and the code stops if an empty or undocumented outcome occurs. The audit finds 219 literal ``None'', 77 ``Insomnia'', and 78 ``Sleep Apnea'' labels, with no blank outcomes. We do not interpret ``None'' as a clinically adjudicated absence of disease (Methods, Data audit; Table 1).
+\item \textbf{Primary configuration.} The revised primary analysis uses only RF+XGBoost stacking with a logistic meta-learner. SVM is removed. Soft voting uses exactly the same two base learners.
+\item \textbf{Reproducibility.} \texttt{revised\_analysis.py} is the executable analysis. It exports software versions, split/group assignments, fold metrics, reference labels, predictions, and probabilities. Preprocessing is refit inside every inner stacking fold.
+\item \textbf{Validation and comparisons.} Two shuffled repetitions of five-fold StratifiedGroupKFold replace the single hold-out. Exact retained-predictor duplicates cannot cross a fold. Stacking, soft voting, both base learners, logistic regression, a shallow tree, and histogram gradient boosting use identical outer folds.
+\item \textbf{Statistics.} The released predictions permit reproduction of all comparisons. Stacking minus soft-voting mean accuracy is -0.0031 (bootstrap 95\% interval -0.0162 to 0.0070); the first-repeat out-of-fold McNemar result is $p=0.6875$. No superiority claim remains.
+\item \textbf{Explanations.} SHAP, LIME, PCA, and ALE results were removed rather than presenting unstable attributions from a duplicate-rich, conflicting-label dataset.
+\end{enumerate}
+
+\section*{Reviewer 2}
+\begin{enumerate}
+\item We no longer claim novelty for stacking. The contribution is the audit and duplicate-aware reproducible evaluation protocol.
+\item Risk-stratification, clinical-decision-support, and diagnostic claims were removed. The manuscript describes prediction of recorded source-file labels only.
+\item The single 75-observation result is replaced by repeated grouped validation, variability, probability scores, calibration artefacts, and paired comparisons.
+\item Post-hoc explanations are removed and are not used as biological mechanisms.
+\item Histogram gradient boosting was added as a contemporary tabular comparator.
+\item The paper was rewritten, condensed, and regenerated from the revised results. The suggested traffic forecasting, image segmentation, and remote-sensing papers are not topical to sleep-health tabular modelling or this methodology, so they were not cited.
+\end{enumerate}
+
+\section*{Reviewer 3}
+\begin{enumerate}
+\item The Discussion explicitly separates internal benchmark discrimination from requirements for real clinical screening.
+\item Results explain the small number of discordant predictions, the interval crossing zero, and limited paired-test power.
+\item Rather than speculate about correlated-feature attribution rankings, the attribution results were removed.
+\item The inconsistent RF+XGBoost+SVM robustness analysis is removed.
+\item Limitations now state the potential classification bias and unknown clinical meaning of the literal ``None'' category.
+\item Local-explanation figures are removed; released observation-level predictions retain the information needed for auditability.
+\item The paper recommends prospective cohorts, development-only tuning, calibration assessment, and external validation.
+\item The suggested references were reviewed for relevance and were not added because they are outside the paper's topic.
+\end{enumerate}
+
+\section*{Reviewer 4}
+\begin{enumerate}
+\item We verified source outcomes and report 265 duplicate retained-predictor rows, 109 unique profiles, and 22 profiles with conflicting recorded outcomes. Group validation is now mandatory.
+\item The supplied code generates every reported result and releases package versions, groups, splits, probabilities, metrics, and paired statistics.
+\item Person ID is removed before group construction. Specifications are fixed; no test-fold tuning is performed.
+\item Repeated grouped validation, simple baselines, Brier scores, and out-of-fold reliability curves were added.
+\item SHAP/LIME/ALE material was removed from both paper and title.
+\end{enumerate}
+
+\section*{Reviewer 5}
+\begin{enumerate}
+\item The raw import, literal-label check, cleaning, and outcome counts are implemented in \texttt{load\_data()} and documented in Table 1.
+\item The 97.33\% 75-observation score is no longer used as evidence; ten duplicate-aware outer folds and their variation are reported.
+\item Code, versions, seeds, group splits, metrics, and observation-level predictions are included in the repository.
+\item The RF+XGBoost two-learner configuration is used consistently throughout; SVM has been removed.
+\end{enumerate}
+
+\section*{Files supplied}
+\begin{itemize}
+\item \texttt{revised\_submission.tex}, \texttt{revised\_references.bib}, and compiled manuscript PDF;
+\item this response and the editable \texttt{response\_to\_reviewers.md};
+\item \texttt{revised\_analysis.py}, \texttt{revised\_stacking\_cls.ipynb}, and \texttt{requirements.txt};
+\item \texttt{revision\_results/} containing metadata, exact splits, fold metrics, predictions/probabilities, paired statistics, and calibration artefacts.
+\end{itemize}
+\end{document}

@@ -1,0 +1,30 @@
+\begin{thebibliography}{1}
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\expandafter\ifx\csname href\endcsname\relax
+  \def\href#1#2{#2} \def\path#1{#1}\fi
+
+\bibitem{breiman2001}
+L.~Breiman, Random forests, Machine Learning 45~(1) (2001) 5--32.
+\newblock \href {https://doi.org/10.1023/A:1010933404324}
+  {\path{doi:10.1023/A:1010933404324}}.
+
+\bibitem{chen2016}
+T.~Chen, C.~Guestrin, Xgboost: A scalable tree boosting system, in: Proceedings
+  of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and
+  Data Mining, 2016, pp. 785--794.
+\newblock \href {https://doi.org/10.1145/2939672.2939785}
+  {\path{doi:10.1145/2939672.2939785}}.
+
+\bibitem{wolpert1992}
+D.~H. Wolpert, Stacked generalization, Neural Networks 5~(2) (1992) 241--259.
+\newblock \href {https://doi.org/10.1016/S0893-6080(05)80023-1}
+  {\path{doi:10.1016/S0893-6080(05)80023-1}}.
+
+\bibitem{kaggle_sleep}
+{Kaggle}, Sleep health and lifestyle dataset,
+  \url{https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset},
+  accessed 6 November 2026 (2023).
+
+\end{thebibliography}

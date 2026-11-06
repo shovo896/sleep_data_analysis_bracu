@@ -1,0 +1,17 @@
+{
+  "paired_accuracy_difference_stack_minus_soft": {
+    "mean": -0.0030798240100565755,
+    "sd": 0.01934430861746234,
+    "bootstrap_95_ci": [
+      -0.016216216216216217,
+      0.006976744186046491
+    ],
+    "n_repeat_fold_pairs": 10
+  },
+  "mcnemar_first_repeat_oof": {
+    "stack_only_correct": 2,
+    "soft_only_correct": 4,
+    "exact_p": 0.6875
+  },
+  "caution": "Repeated folds are correlated; these summaries quantify internal-validation variability and are not external-validation evidence."
+}
