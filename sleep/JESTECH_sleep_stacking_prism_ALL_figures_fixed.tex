@@ -1,0 +1,889 @@
+\RequirePackage{scrlfile}
+\PreventPackageFromLoading{cite,breakurl}
+\documentclass[a4paper,fleqn]{cas-dc}
+\ifdefined\pdfsuppresswarningpagegroup
+  \pdfsuppresswarningpagegroup=1
+\fi
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[english]{babel}
+\usepackage{mathrsfs,anyfontsize}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage[nopatch=footnote]{microtype}
+\usetikzlibrary{arrows.meta,positioning}
+\newcolumntype{Q}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\tikzset{
+box/.style={draw,rounded corners,align=center,fill=blue!5,inner sep=5pt},
+arrow/.style={-{Latex[length=2mm]},thick}
+}
+\newcommand{\safeincludegraphics}[2][]{\includegraphics[#1]{#2}}
+\makeatletter
+\renewcommand{\theHALG@line}{\thealgorithm.\arabic{ALG@line}}
+\makeatother
+\setlength{\emergencystretch}{2em}
+\renewcommand{\floatpagefraction}{0.65}
+\renewcommand{\dblfloatpagefraction}{0.65}
+\makeatletter
+\ExplSyntaxOn
+\expandafter\patchcmd\csname address\c_space_tl code\endcsname
+  {\label{affa}}{\label{aff#1}}{}{\errmessage{CAS~address~patch~failed}}
+\cs_set:Npn\__cas_head_odd:{
+  \parbox{\textwidth}{\scriptsize\raggedleft\__short_title:\hfill\thepage}
+}
+\cs_set_eq:NN\__cas_head_even:\__cas_head_odd:
+\ExplSyntaxOff
+\makeatother
+\AtBeginDocument{\FullWidth=\textwidth}
+\begin{document}
+\raggedbottom
+\shorttitle{R. Bin Reza et al. / Explainable stacking for sleep-disorder risk stratification}
+\shortauthors{Rifat Bin Reza et al.}
+\title[mode=title]{An Explainable Logistic-Meta-Learner Stacking Framework with Domain-Informed Feature Engineering for Multiclass Sleep-Disorder Risk Stratification}
+\author[1]{Rifat Bin Reza}[orcid=0009-0006-1865-8419]
+\cormark[1]
+\ead{rifat.bin.reza1@g.bracu.ac.bd}
+\author[2]{Md Ahadul Haque Suvo}[orcid=0009-0000-6756-4773]
+\author[1]{Atair Rahman Alvi}[orcid=0009-0006-5117-8599]
+\address[1]{BSRM School of Engineering, Department of Electrical and Electronics Engineering, Brac University, Dhaka, Bangladesh\phantomsection\label{affa}}
+\address[2]{Aviation and Aerospace University, Department of Avionics Engineering, Dhaka, Bangladesh}
+\cortext[cor1]{Corresponding author.}
+\begin{highlights}
+\item A leakage-controlled RF--XGBoost stacking framework is formulated for a small mixed-type sleep-health benchmark.
+\item Out-of-fold base probabilities and encoded predictor pass-through are combined in a logistic meta-learner.
+\item Hold-out performance and model explanations are reported without interpreting benchmark categories as diagnoses.
+\item Outcome coding, small-sample uncertainty, and external validation requirements are explicitly documented.
+\end{highlights}
+\begin{abstract}
+Small tabular sleep-health benchmarks are susceptible to outcome ambiguity and optimistic evaluation. This study describes an explainable stacking framework using the publicly available Sleep Health and Lifestyle Dataset, comprising 374 records, 11 candidate predictors, and three outcome categories: no recorded disorder, insomnia, and sleep apnea. The documented protocol removes administrative identifiers, separates systolic and diastolic blood pressure, and confines learned preprocessing to the appropriate training partitions. The primary specification combines Random Forest and XGBoost probabilities with encoded predictor pass-through in a logistic-regression meta-learner. The supplied hold-out confusion matrix, labelled RF--XGBoost stacking, contains 73 correct predictions among 75 observations: accuracy 97.33\%, macro-F1 0.96, and class-specific F1 scores of 0.93, 1.00, and 0.94 for insomnia, no recorded disorder, and sleep apnea, respectively. The corresponding soft-voting matrix gives 96.00\% accuracy, a difference of one correct prediction. Reported paired uncertainty estimates do not establish superiority and require confirmation from observation-level predictions. SHAP, LIME, PCA, and local-effect displays provide descriptive views of the available outputs. SVM-labelled ablation and repeated-split figures are distinguished from the two-learner primary specification because their configuration and evaluation provenance are unresolved. These results constitute a reported computational benchmark, not evidence of diagnostic validity. Reproducible implementation, outcome-coding verification, calibration, repeated internal validation, and independent external evaluation are needed before clinical interpretation.
+\end{abstract}
+\begin{keywords}
+sleep disorder \sep
+insomnia \sep
+sleep apnea \sep
+stacking ensemble \sep
+XGBoost \sep
+explainable machine learning \sep
+clinical decision support
+\end{keywords}
+\maketitle
+\enlargethispage{1pt}
+
+\section{Introduction}
+
+Sleep disorders represent a heterogeneous group of conditions that differ in clinical definition, underlying mechanisms, and management requirements. The International Classification of Sleep Disorders distinguishes insomnia disorders from sleep-related breathing disorders, including obstructive sleep apnea, and therefore a computational model that groups such conditions into a small number of benchmark categories should not be interpreted as reproducing the clinical taxonomy \cite{aasm2023}. Nevertheless, automated risk-stratification approaches are increasingly investigated as tools for identifying individuals who may warrant further assessment. In particular, artificial-intelligence methods have been explored for sleep-apnea screening using electrocardiography, oximetry, respiratory signals, wearable sensors, and multimodal physiological measurements \cite{bazoukis2023,tyagi2023,abdalrazaq2024,giorgi2025}. These studies demonstrate the potential of machine learning to support scalable screening, while also highlighting the distinction between computational discrimination and clinically established diagnosis.
+
+Alongside signal-based approaches, structured tabular sleep-health datasets provide a simpler environment for studying machine-learning methodology. Demographic characteristics, sleep duration and quality, physical activity, perceived stress, body-mass-index category, heart rate, blood pressure, and occupation can be combined to construct predictive models without requiring continuous physiological waveforms. Such datasets are attractive because they are inexpensive to analyse and readily accessible for methodological benchmarking. However, their simplicity can conceal important limitations. Outcome categories may not correspond to clinician-adjudicated diagnoses, predictor variables can be strongly correlated, class frequencies may be unequal, and administrative or preprocessing operations can unintentionally introduce information leakage. Consequently, apparently strong performance on a small tabular benchmark should be interpreted primarily as evidence of predictive behaviour within that dataset rather than as evidence of clinical validity.
+
+Recent work has applied both conventional machine-learning ensembles and neural architectures to sleep-related prediction problems. Reviews of sleep-apnea artificial intelligence research demonstrate a broad range of modelling strategies, while studies on general tabular learning indicate that tree-based ensembles and deep neural networks exhibit complementary strengths depending on the dataset and task \cite{bazoukis2023,tyagi2023,abdalrazaq2024,borisov2024}. Of particular relevance to the present study, Alom et al. evaluated ensemble neural-network methods on the same Sleep Health and Lifestyle Dataset considered here and reported accuracy values for bagging, boosting, and weighted-averaging configurations \cite{alom2024}. These results provide a useful literature context, but direct comparison remains limited because the published neural-network study and the present analysis do not necessarily share the same preprocessing, partitioning, validation, and model-selection procedures. Accordingly, numerical differences between studies should be treated as descriptive rather than as evidence of superiority.
+
+A further methodological concern arises when several predictive models are combined through stacking. Stacked generalization can exploit complementary errors and probability estimates from heterogeneous base learners, but its validity depends critically on how the second-level training data are constructed \cite{wolpert1992}. If a meta-learner is trained using in-sample predictions from base learners, information from observations used to fit those learners can propagate into the second stage and produce optimistic performance estimates. Similar concerns apply to preprocessing: scaling, categorical encoding, feature construction, and other learned transformations must be isolated from the evaluation data and, in an out-of-fold stacking procedure, must also be refitted within each training fold \cite{kapoor2023,efthimiou2024,collins2024}. These considerations are especially important for small datasets, for which a modest number of observations can produce large changes in estimated performance.
+
+The interpretation of tabular machine-learning models also requires caution. Explainable artificial-intelligence methods such as SHAP and LIME can describe which variables are influential for a fitted prediction function and how individual predictions are locally represented \cite{lundberg2017,ribeiro2016,instanceshap2023}. Accumulated Local Effects provide an additional way of visualising model behaviour while accounting for the empirical distribution of predictors \cite{apley2020}. However, attribution magnitude does not establish causality, and an explanation of a fitted model does not demonstrate that the underlying association is clinically meaningful. Recent reviews and reporting frameworks therefore emphasise explanation fidelity, stability, uncertainty, data provenance, calibration, external validation, and intended use when interpreting healthcare-oriented artificial intelligence systems \cite{jung2023,allen2024,tripodai2024,futureai2025}. This distinction is particularly important for benchmark datasets whose outcome categories are not independently clinically adjudicated.
+
+Against this background, there remains a methodological gap in carefully evaluating heterogeneous stacking on the Sleep Health and Lifestyle Dataset under an explicitly leakage-controlled protocol while maintaining a clear separation between benchmark prediction and clinical interpretation. The present study addresses this gap through a two-learner Random Forest--XGBoost stacking framework with a multinomial logistic meta-learner. The proposed configuration combines out-of-fold class-probability estimates from the two base learners with encoded predictors through a pass-through connection, thereby allowing the meta-learner to exploit both model-level and feature-level information. The evaluation isolates a stratified hold-out test set before learned preprocessing, uses fold-specific transformations when generating out-of-fold probabilities, and compares the resulting stack with RF--XGBoost soft voting. Published ANN results on the same benchmark are included as contextual reference values rather than as a matched experimental baseline.
+
+In addition to predictive discrimination, the study examines model behaviour using post-hoc explanation methods, principal-component visualisation, rank-based feature association analysis, and a two-dimensional Accumulated Local Effects surface. These analyses are intended to characterise the fitted models rather than to infer biological mechanisms or establish diagnostic relationships. Paired uncertainty analysis is also used to examine the difference between stacking and soft voting on the common hold-out sample. Particular attention is given to the provenance of the outcome labels and to the distinction between benchmark categories and clinically adjudicated disease status.
+
+The contributions of this study are therefore fourfold. First, it provides a leakage-controlled formulation of heterogeneous RF--XGBoost stacking for a small mixed-type sleep-health benchmark. Second, it evaluates whether probability-level stacking provides a measurable difference from soft voting under a common hold-out partition. Third, it provides complementary global and local explanation analyses while explicitly limiting causal interpretation. Fourth, it documents the methodological and data-quality constraints that must be resolved before performance on this benchmark could support claims of clinical utility. The resulting framework is intended as a reproducible computational benchmark for tabular sleep-disorder risk stratification rather than as a diagnostic model.
+
+\section{Related work and study rationale}
+
+Table~\ref{tab:related_work} summarises the related studies and their relevance to the present benchmark.
+
+Recent sleep-AI research has concentrated primarily on apnea detection from physiological signals and wearable devices. Contemporary reviews cover electrocardiographic, oximetric, respiratory, and multimodal signal pipelines, and consistently distinguish automated screening from clinically adjudicated diagnosis \cite{bazoukis2023,tyagi2023,abdalrazaq2024,giorgi2025}. This evidence base is informative for clinical framing but is not directly comparable with the present low-dimensional lifestyle dataset, which contains neither raw physiological waveforms nor polysomnographic severity indices.
+
+For tabular prediction, recent evidence continues to treat tree ensembles and neural architectures as complementary rather than universally interchangeable model families \cite{borisov2024}. Alom et al. applied ANN bagging, boosting, and weighted averaging to the same sleep-health benchmark used here \cite{alom2024}; their reported accuracies provide the only literature-derived numerical comparator in this manuscript. In a different clinical setting, Alabi et al. demonstrated that heterogeneous stacking can be paired with SHAP and LIME, but their cancer-survival task, sample construction, and validation design preclude direct performance comparison \cite{alabi2023}. The unresolved methodological question is therefore whether an out-of-fold heterogeneous stack can improve discrimination on this specific benchmark while maintaining strict evaluation separation and transparent uncertainty.
+
+The explanation layer is deliberately bounded. Recent reviews emphasise that post-hoc explanations require explicit definitions of audience, fidelity, stability, and intended use; an attribution is evidence about a fitted prediction function, not a causal mechanism or clinical rationale \cite{jung2023,allen2024}. Likewise, current reporting and deployment guidance requires transparent data provenance, evaluation design, uncertainty, and validation before clinical use \cite{tripodai2024,futureai2025}. Accordingly, all ANN percentages in the comparative table are transcribed from Alom et al. \cite{alom2024}, whereas the stacking outputs are supplied by the present analysis; their configuration provenance is discussed in Section~\ref{sec:architecture}. The comparison is descriptive because the studies do not share an identical evaluation protocol.
+\begin{table*}[width=\textwidth,pos=!tbp]
+\centering
+\caption{Summary of related studies and their relevance to this work.}
+\label{tab:related_work}
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabularx}{\textwidth}{@{}Q{0.18\textwidth}Q{0.22\textwidth}Q{0.23\textwidth}Y@{}}
+\toprule
+Study & Data/task & Methods & Relevance \\
+\midrule
+
+Alom et al. \cite{alom2024} &
+Sleep-health tabular data &
+ANN Ensembles &
+Main Numerical Comparator \\
+
+Alabi et al. \cite{alabi2023} &
+Cancer survival &
+Stacking, SHAP, LIME &
+Supports explainable stacking \\
+
+Bazoukis et al. \cite{bazoukis2023} &
+Physiological sleep data &
+ML/DL methods &
+Clinical screening context \\
+
+Tyagi et al. \cite{tyagi2023} &
+Sleep signals &
+ML/DL pipelines &
+Signal-based comparison \\
+
+Borisov et al. \cite{borisov2024} &
+Tabular datasets &
+Tree and neural models &
+Supports heterogeneous models \\
+
+\textbf{This study} &
+\textbf{Sleep-Health Tabular Data} &
+\textbf{Heterogeneous stack} &
+\textbf{OOF stacking, XAI, uncertainty} \\
+
+\bottomrule
+\end{tabularx}
+\end{table*}
+\section{Materials and Methods}
+\label{sec:methods}
+
+\subsection{Methodological overview}
+The documented analytical pathway is summarised in Fig.~\ref{fig:workflow}. Deterministic preparation removes the identifier, harmonises predefined BMI labels, and splits blood pressure into numerical components. A stratified test partition is isolated before fitting numerical scaling or categorical vocabularies. The stacking protocol then combines out-of-fold base-learner probabilities with encoded predictors in a logistic meta-learner. Test evaluation follows pipeline fitting, with no test-driven transformation updates. These steps specify the intended leakage controls; the available manuscript and figures alone do not establish that every transformation and model-selection decision followed them in the implementation.
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\safeincludegraphics[width=\linewidth]{archi_fig.jpg}
+\caption{Main architecture and analytical workflow of the RF--XGBoost stacking framework. The six stages show deterministic data preparation, the stratified development/test split, training-only preprocessing, out-of-fold stacking with predictor pass-through, pipeline finalisation, and hold-out evaluation. The dashed route denotes test records excluded from fitting. The stacking architecture and training protocol are detailed in Fig.~\ref{fig:stack} and Algorithm~\ref{alg:stack}. This schematic describes the documented protocol, not the verified provenance of the separate SVM-labelled outputs.}
+\label{fig:archi}
+\label{fig:workflow}
+\end{figure*}
+
+% \begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+% \centering
+% \begin{tikzpicture}[
+%   font=\small,
+%   workflowbox/.style={draw=blue!45!black,fill=blue!4,rounded corners=3pt,
+%     text width=39mm,align=center,inner sep=7pt,minimum height=22mm},
+%   link/.style={-{Latex[length=2mm]},line width=0.8pt,draw=black!65}
+% ]
+% \node[workflowbox] (data) at (0,0)
+%   {\textbf{1. Data preparation}\\[3pt]374 records; remove ID\\BMI harmonisation\\Split blood pressure};
+% \node[workflowbox] (split) at (5.2,0)
+%   {\textbf{2. Stratified split}\\[3pt]80:20; seed 42\\Development: 299\\Hold-out test: 75};
+% \node[workflowbox] (prep) at (10.4,0)
+%   {\textbf{3. Training-only fitting}\\[3pt]Scale and encode\\Refit preprocessing in\\each OOF training fold};
+% \node[workflowbox] (stack) at (10.4,-3.4)
+%   {\textbf{4. OOF stacking}\\[3pt]RF and XGBoost in parallel\\Five-fold probabilities\\Logistic meta-learner\\with predictor pass-through};
+% \node[workflowbox] (frozen) at (5.2,-3.4)
+%   {\textbf{5. Freeze the pipeline}\\[3pt]Refit base models on\\all development records\\Retain training-fitted\\transformations};
+% \node[workflowbox,draw=green!40!black,fill=green!4] (eval) at (0,-3.4)
+%   {\textbf{6. Hold-out evaluation}\\[3pt]75 test records\\Predictions and metrics\\Post-hoc explanations};
+% \draw[link] (data) -- (split);
+% \draw[link] (split) -- (prep);
+% \draw[link] (prep) -- (stack);
+% \draw[link] (stack) -- (frozen);
+% \draw[link] (frozen) -- (eval);
+% \draw[link,dashed] (split.south) -- (5.2,-1.6)
+%   -- node[above,font=\footnotesize,fill=white,inner sep=2pt]
+%   {75 test records: excluded from fitting} (0,-1.6) -- (eval.north);
+% \end{tikzpicture}
+% \caption{Documented two-learner workflow. Deterministic preparation precedes splitting; learned preprocessing follows the split and is refitted within each OOF training fold. RF and XGBoost are parallel base learners, as detailed in Fig.~\ref{fig:stack} and Algorithm~\ref{alg:stack}. The dashed path keeps test records outside model fitting. This schematic specifies the leakage-control protocol; it does not verify the provenance of the separate SVM-labelled outputs.}
+% \label{fig:workflow}
+% \end{figure*}
+
+
+\subsection{Problem formulation and notation}
+Let the benchmark sample be $\mathcal{D}=\{(\mathbf{x}_i,y_i)\}_{i=1}^{N}$, where $N=374$, $\mathbf{x}_i\in\mathbb{R}^{d_n}\times\mathcal{A}^{d_c}$ contains numerical and categorical predictors, and $y_i\in\mathcal{C}=\{0,1,2\}$ denotes insomnia, no recorded disorder, or sleep apnea. The analytical objective is to estimate a probabilistic mapping
+\begin{equation}
+F:\mathcal{X}\rightarrow\Delta^{C-1},\qquad
+\hat y_i=\arg\max_{c\in\mathcal{C}}F_c(\mathbf{x}_i),
+\label{eq:problem}
+\end{equation}
+where $C=3$ and $\Delta^{C-1}$ is the probability simplex. The stratified partition satisfies
+\begin{equation}
+\mathcal{D}_{tr}\cap\mathcal{D}_{te}=\varnothing,
+\qquad |\mathcal{D}_{tr}|=299,
+\qquad |\mathcal{D}_{te}|=75,
+\label{eq:partition}
+\end{equation}
+and every estimated parameter is a function of $\mathcal{D}_{tr}$ only. For numerical predictor $j$, development-set standardisation is
+\begin{equation}
+\widetilde{x}_{ij}=\frac{x_{ij}-\mu^{(tr)}_j}{\sigma^{(tr)}_j},
+\quad
+\mu^{(tr)}_j=\frac{1}{n_{tr}}\sum_{i\in\mathcal{D}_{tr}}x_{ij},
+\label{eq:standardise}
+\end{equation}
+where $\sigma^{(tr)}_j$ is the standard deviation estimated from $\mathcal{D}_{tr}$. A categorical level $a_q$ is represented by $o_{iq}=\mathbb{I}(x_{ij}=a_q)$. Consequently, the fitted transformer $T_{\widehat{\theta}_{tr}}$ maps each observation to the fixed-schema vector $\mathbf{x}'_i=T_{\widehat{\theta}_{tr}}(\mathbf{x}_i)$, with neither the scale parameters nor the categorical vocabulary re-estimated on the test partition.
+
+\subsection{Data source and outcome definition}
+\label{sec:data}
+Table~\ref{tab:datasetprofile} summarises the reported dataset characteristics; Table~\ref{tab:variables} groups the predictors and specifies their computational treatment.
+
+The analysis used the publicly available Sleep Health and Lifestyle Dataset hosted on Kaggle \cite{kaggle2023}. The dataset comprises 374 participant-level observations and 13 variables: one administrative identifier, 11 candidate predictors, and the Sleep Disorder outcome. The predictors represent demographic characteristics, sleep behaviour, physical activity, perceived stress, body-mass category, heart rate, and blood pressure. Because the data were not collected as a prospectively recruited clinical cohort and the outcome was not independently adjudicated, the dataset is treated as a methodological benchmark for risk stratification rather than as a source of prevalence estimates or diagnostic ground truth.
+
+The supplied data summary reports complete values for the 11 candidate predictors and 219 outcome entries treated as blank or missing after import. These entries were assigned to no recorded disorder, giving reported class totals of 219, 77, and 78 for no recorded disorder, insomnia, and sleep apnea. The source CSV and parsing code are required to distinguish genuinely empty fields from a literal ``None'' category converted to a missing value by the import procedure. The totals and operational class mapping are retained here, but the interpretation of those 219 entries is not independently verified. Neither an absent label nor a benchmark category establishes clinician-confirmed absence of disease.
+
+\begin{table*}[width=\textwidth,pos=!tbp]
+\centering
+\caption{Descriptive characteristics of the 374 observations used for model development and evaluation.}
+\label{tab:datasetprofile}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabularx}{\textwidth}{@{}Q{0.25\textwidth}Q{0.27\textwidth}Y@{}}
+\toprule
+Profile item & Observed value & Interpretation \\
+\midrule
+Records and variables & 374 records; 13 variables & Person-level tabular benchmark \\
+Candidate predictors & 11 & Mixed numerical and categorical fields \\
+Imported outcome coding & 155 disorder labels; 219 treated as missing & Mapped to no recorded disorder; original CSV parsing requires verification \\
+Class distribution & No recorded disorder, 219; insomnia, 77; sleep apnea, 78 & Unequal class frequencies \\
+Age & 27--59 years; mean, 42.18 & Demographic predictor \\
+Sleep duration & 5.8--8.5 h; mean, 7.13 h & Self-reported sleep behaviour \\
+Heart rate & 65--86 bpm; mean, 70.17 bpm & Physiological indicator \\
+Daily steps & 3,000--10,000; mean, 6,816.84 & Activity indicator \\
+Reported source categories & Gender, 2; occupation, 11; BMI, 4 & BMI labels Normal and Normal Weight merged before encoding \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Age ranged from 27 to 59 years (mean 42.18, standard deviation 8.67), and reported sleep duration ranged from 5.8 to 8.5 h (mean 7.13, standard deviation 0.80). Quality-of-sleep scores ranged from 4 to 9, physical-activity levels from 30 to 90, stress scores from 3 to 8, heart rate from 65 to 86 beats/min, and daily step counts from 3,000 to 10,000. The categorical variables comprised two gender categories, 11 occupational groups, and four body-mass-index labels. Blood pressure, originally represented as a systolic/diastolic string, was separated into two numerical variables. The synonymous labels ``Normal Weight'' and ``Normal'' were consolidated before one-hot encoding.
+
+\begin{table*}[width=\textwidth,pos=!tbp]
+\centering
+\caption{Predictor groups, representative variables, and their computational treatment within the modelling pipeline.}
+\label{tab:variables}
+\small
+\begin{tabular}{Q{0.24\linewidth}Q{0.25\linewidth}Q{0.42\linewidth}}
+\toprule
+Variable group & Examples & Treatment \\
+\midrule
+Administrative & Person ID & Removed before modelling \\
+Demographic & Age, Gender, Occupation & Categorical encoding; age standardisation \\
+Sleep behaviour & Sleep Duration, Quality of Sleep & Numerical standardisation \\
+Lifestyle & Physical Activity Level, Daily Steps & Numerical standardisation \\
+Psychophysiological & Stress Level, Heart Rate & Numerical standardisation \\
+Anthropometric & BMI Category & Category harmonisation and one-hot encoding \\
+Cardiovascular & Blood Pressure & Split into systolic and diastolic values \\
+Target & Sleep Disorder & Label encoding into three classes \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Person ID was excluded because it contains ordering information without a plausible physiological interpretation. Occupation was retained as a contextual predictor, although its contribution requires careful scrutiny because it may encode socioeconomic structure and introduce transportability concerns. The public-source provenance, modest sample size, outcome-assignment rule, and absence of clinical adjudication therefore define the inferential boundaries of this study.
+
+
+\subsection{Class separability diagnostic (PCA)}
+\label{sec:pca}
+To characterise the intrinsic separability of the three outcome classes independent of any specific classifier, a two-component principal component analysis was fitted to the fully preprocessed (scaled and one-hot encoded) feature matrix using all 374 observations. This projection is diagnostic only: it is fitted separately from, and never substituted into, the classification pipeline described in Sections~\ref{sec:split}--\ref{sec:architecture}, so it does not affect any reported classification metric.
+
+The reported component-wise explained-variance ratios are 33.68\% and 29.47\%, rounded to 33.7\% and 29.5\% on the axes. Together they represent approximately 63.1\% of the variance. Fig.~\ref{fig:pca}(a) shows the scatter, and panel (b) overlays 1-sigma class ellipses. The no-recorded-disorder ellipse lies mainly below the horizontal axis, the insomnia ellipse near the centre, and the sleep-apnea ellipse mainly above it. Individual observations nevertheless overlap across classes and some lie outside their class ellipse. These regions are not classifier decision boundaries and do not explain specific test-set errors. The figure legend uses ``None'' for no recorded disorder.
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\safeincludegraphics[width=\linewidth]{pca_class_separability.png}
+\caption{PCA projection of the preprocessed feature space (diagnostic only, not part of the modelling pipeline): (a) raw scatter by outcome class; (b) the same projection with 1-sigma class ellipses. PC1 and PC2 explain 33.68\% and 29.47\% of variance, respectively.}
+\label{fig:pca}
+\end{figure*}
+
+\subsection{Data splitting and leakage control}
+\label{sec:split}
+The reported 80:20 stratified partition uses random seed 42 and contains 299 development and 75 test observations. Algorithm~\ref{alg:prep} specifies splitting before learned transformations and reusing training-fitted parameters on the test set. For out-of-fold base predictions, numerical scaling and categorical encoding must additionally be refitted within each training fold; fitting them once on all development records does not provide fold-isolated preprocessing. Algorithm~\ref{alg:stack} states this requirement explicitly as part of the protocol, but verification that the reported results followed it requires the analysis code \cite{kapoor2023,efthimiou2024}.
+
+\begin{algorithm}[tbp]
+\caption{Leakage-Controlled Data Preparation and Feature Transformation}
+\label{alg:prep}
+\small
+\setlength{\abovedisplayskip}{3pt}
+\setlength{\belowdisplayskip}{3pt}
+\begin{algorithmic}[1]
+
+\Require Dataset $D$, target $y$, random seed $s=42$
+\Ensure Transformed development and test partitions
+$(X'_{tr},y_{tr})$ and $(X'_{te},y_{te})$
+
+\State Remove administrative identifier fields from $D$
+
+\State Assign blank outcome entries to the
+``no recorded disorder'' class
+
+\State Harmonise categorical labels, including BMI categories
+
+\State Decompose Blood Pressure into systolic and
+diastolic numerical features
+
+\State Perform an 80:20 stratified split:
+\[
+(D_{tr},D_{te})\leftarrow
+\operatorname{StratifiedSplit}(D,y,s)
+\]
+
+\State Extract:
+\[
+(X_{tr},y_{tr}),\;(X_{te},y_{te})
+\]
+
+\State Fit numerical standardisation parameters
+$(\mu_{tr},\sigma_{tr})$ using $X_{tr}$ only
+
+\State Fit the categorical one-hot encoder
+$\mathcal{E}_{tr}$ using $X_{tr}$ only
+
+\State Construct $\mathcal{T}_{tr}$ by concatenating standardised numerical features and one-hot encoded categorical features:
+\[
+X'_{tr}\leftarrow\mathcal{T}_{tr}(X_{tr})
+\]
+
+\State Apply the same fitted transformations to the
+held-out data:
+\[
+X'_{te}
+\leftarrow
+\mathcal{T}_{tr}(X_{te})
+\]
+
+\State Fit the label mapping $\mathcal{L}_{tr}$ using
+$y_{tr}$ only
+
+\State Encode:
+\[
+y_{tr}\leftarrow\mathcal{L}_{tr}(y_{tr}),
+\qquad
+y_{te}\leftarrow\mathcal{L}_{tr}(y_{te})
+\]
+
+\State Preserve the resulting feature schema for both partitions
+
+\State \Return
+$(X'_{tr},y_{tr})$ and $(X'_{te},y_{te})$
+
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Base Learners and Stacking Design}
+\label{sec:architecture}
+Fig.~\ref{fig:stack} illustrates the encoded input, the two base learners, and the logistic meta-learner with predictor pass-through.
+
+The primary specification is the two-learner RF--XGBoost configuration named in the workflow, architecture diagram, and confusion-matrix labels. The separate ablation and repeated-split artwork explicitly names RF--XGBoost--SVM; it is not used to redefine the primary model. The ROC, stacking SHAP, and stacking LIME plots identify a stacking classifier without listing its base learners. Their exact model identity cannot be established from the artwork alone. No executable model, SVM hyperparameters, or observation-level predictions accompany these outputs. The documented Random Forest configuration uses 100 trees, maximum depth 10, minimum split size 5, minimum leaf size 1, and seed 42. In general, its probability vector averages the individual tree probabilities:
+\begin{equation}
+p_{RF}(c\mid\mathbf{x}')=\frac{1}{B}\sum_{b=1}^{B}
+\pi_{bc}(\mathbf{x}').
+\label{eq:rf}
+\end{equation}
+Here, $\pi_{bc}(\mathbf{x}')$ is tree $b$'s probability for class $c$; a hard class vote is only a special case, not an assumed implementation. The documented XGBoost settings are 800 boosting iterations, learning rate 0.02, maximum depth 3, row and column subsampling 0.90, minimum child weight 3, $\gamma=0.15$, and $\lambda=1.2$. Its class-specific additive score and probability can be written as
+\begin{equation}
+s_c^{(M)}(\mathbf{x}')=\sum_{m=1}^{M}\eta f_{mc}(\mathbf{x}'),
+\qquad
+p_{XGB}(c\mid\mathbf{x}')=
+\frac{\exp(s_c^{(M)})}{\sum_{r\in\mathcal{C}}\exp(s_r^{(M)})}.
+\label{eq:xgb}
+\end{equation}
+In the specified five-fold protocol, $\kappa(i)$ denotes the fold containing observation $i$. For learner $A\in\{RF,XGB\}$, define $\mathbf{p}_{A,i}^{OOF}$ as its probabilities after both preprocessing and model fitting exclude fold $\kappa(i)$. These fold-specific probabilities, not predictions from a model fitted to observation $i$, enter the meta-level vector:
+\begin{equation}
+\mathbf{z}^{OOF}_i=\left[\,{\mathbf{x}'_i}^{\!\top},\
+{\mathbf{p}_{RF,i}^{OOF}}^{\!\top},\
+{\mathbf{p}_{XGB,i}^{OOF}}^{\!\top}\right]^{\!\top}
+\in\mathbb{R}^{d+2C}.
+\label{eq:oofvector}
+\end{equation}
+The pass-through vector $\mathbf{x}'_i$ uses the development-fitted transformer for meta-training. This does not replace the separate fold-specific transformations used to produce the OOF base probabilities. All transformer and model parameters remain independent of the held-out test records. A multinomial logistic meta-learner then estimates
+\begin{equation}
+p_{S}(c\mid\mathbf{z})=
+\frac{\exp(\beta_{c0}+\boldsymbol{\beta}_c^{\top}\mathbf{z})}
+{\sum_{r\in\mathcal{C}}\exp(\beta_{r0}+\boldsymbol{\beta}_r^{\top}\mathbf{z})},
+\label{eq:meta}
+\end{equation}
+by minimising regularised multiclass log loss
+\begin{equation}
+\begin{aligned}
+\widehat{\boldsymbol{\beta}}=\arg\min_{\boldsymbol{\beta}}\Biggl[&
+-\frac{1}{n_{tr}}\sum_{i=1}^{n_{tr}}\sum_{c\in\mathcal{C}}
+\mathbb{I}(y_i=c)\log p_S(c\mid\mathbf{z}^{OOF}_i)\\
+&+\lambda_{\beta}\sum_{c\in\mathcal{C}}\lVert\boldsymbol{\beta}_c\rVert_2^2\Biggr].
+\end{aligned}
+\label{eq:metaloss}
+\end{equation}
+Here, $\lambda_{\beta}$ denotes the L2 penalty governed by the implementation's inverse-regularisation setting $C_{\mathrm{LR}}=2.0$. The base models were subsequently refitted on the full development set for inference on unseen observations. Restricting meta-learner training to out-of-fold predictions is essential; using in-sample probabilities would expose the second level to optimistically biased representations \cite{kapoor2023,alabi2023}.
+
+Table~\ref{tab:hyper} summarises the documented hyperparameters of the Random Forest and XGBoost base learners, the logistic-regression meta-learner, and the validation configuration.
+
+\begin{table*}[width=\textwidth,pos=!tbp]
+\centering
+\caption{Hyperparameter configuration of the Random Forest and XGBoost base learners, logistic-regression meta-learner, and validation split.}
+\label{tab:hyper}
+\small
+\begin{tabular}{lll}
+\toprule
+Component & Parameter & Value \\
+\midrule
+Random Forest & number of trees & 100 \\
+ & maximum depth & 10 \\
+ & minimum split / leaf & 5 / 1 \\
+XGBoost & estimators / learning rate & 800 / 0.02 \\
+ & maximum depth & 3 \\
+ & row / column subsample & 0.90 / 0.90 \\
+ & min child weight / $\gamma$ & 3 / 0.15 \\
+ & L2 regularisation, $\lambda$ & 1.2 \\
+Meta-learner & model & logistic regression \\
+ & inverse regularisation / solver & $C_{\mathrm{LR}}=2.0$ / L-BFGS \\
+ & encoded-feature pass-through & enabled \\
+Validation & split / seed & 80:20 stratified / 42 \\
+ & stacking folds & 5 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\safeincludegraphics[width=0.9\linewidth,height=0.57\textheight,keepaspectratio]{randomforest.png}
+\caption{Architecture of the proposed heterogeneous stack. Out-of-fold Random Forest and XGBoost class-probability vectors are concatenated with the encoded predictors through the pass-through connection; the logistic meta-learner then estimates the final multiclass probabilities.}
+\label{fig:stack}
+\end{figure*}
+
+\begin{algorithm}[!t]
+\caption{Fold-Isolated RF--XGBoost Stacking Protocol}
+\label{alg:stack}
+\small
+\begin{algorithmic}[1]
+\Require Untransformed development data $(X_{tr},y_{tr})$, test record $x$, folds $K=5$
+\Ensure Predicted class $\hat y$
+\State Partition the development data into $K$ stratified folds
+\State Initialise $P_{RF},P_{XGB}\in\mathbb{R}^{n_{tr}\times C}$
+\For{$k=1,\ldots,K$}
+  \State Let $\mathcal{D}^{(k)}$ be the validation fold
+  \State Set $\mathcal{D}_{train}^{(k)}=\mathcal{D}_{tr}\setminus\mathcal{D}^{(k)}$
+  \State Fit preprocessing $T^{(-k)}$ on this training fold only
+  \State Fit RF and XGBoost using its transformed training fold
+  \State Compute $P_{RF}^{(k)}=f_{RF}^{(-k)}(T^{(-k)}(X^{(k)}))$
+  \State Compute $P_{XGB}^{(k)}=f_{XGB}^{(-k)}(T^{(-k)}(X^{(k)}))$
+  \State Store both probability blocks at their OOF row indices
+\EndFor
+\State Fit $T_{tr}$ on all development predictors only
+\State Set $X'_{tr}=T_{tr}(X_{tr})$ and $x'=T_{tr}(x)$
+\State Form $Z=[X'_{tr},P_{RF},P_{XGB}]$ for meta-training
+\State Fit multinomial logistic model $g(Z,y_{tr})$ with $C_{\mathrm{LR}}=2.0$
+\State Refit RF and XGBoost on $(X'_{tr},y_{tr})$
+\State Compute $p_{RF}=f_{RF}(x')$ and $p_{XGB}=f_{XGB}(x')$
+\State Form $z^*=[x',p_{RF},p_{XGB}]$
+\State Compute $p^*=g(z^*)$
+\State Set $\hat y=\arg\max_{c\in\mathcal{C}}p_c^*$
+\State \Return $\hat y$
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{Explainability and Auditability}
+\label{sec:explain}
+Algorithm~\ref{alg:shap} summarises the permutation-SHAP procedure and the aggregation of class-specific attributions into global importance scores.
+
+SHAP explanations were obtained through a permutation-based, model-agnostic interface. A fixed background sample $B$ was drawn exclusively from the development partition, and each perturbed observation was passed through the complete preprocessing and prediction pipeline. For class $c$, local additive consistency satisfies
+\begin{equation}
+F_c(\mathbf{x}_i)-\mathbb{E}_{\mathbf{X}\sim B}[F_c(\mathbf{X})]
+=\sum_{j=1}^{d}\phi_{ij}^{(c)},
+\label{eq:shaplocal}
+\end{equation}
+and global importance for feature $j$ was defined as
+\begin{equation}
+I_j=\frac{1}{nC}\sum_{i=1}^{n}\sum_{c\in\mathcal{C}}|\phi_{ij}^{(c)}|.
+\label{eq:shapglobal}
+\end{equation}
+Here, $\phi_{ij}^{(c)}$ denotes the attribution assigned to feature $j$ for observation $i$ and class $c$. LIME was used as a complementary local analysis. Given perturbed neighbourhood $\mathcal{Z}_i$, proximity kernel $\pi_i$, and interpretable surrogate family $\mathcal{G}$, the local explanation is
+\begin{equation}
+g_i^{*}=\arg\min_{g\in\mathcal{G}}
+\left\{\sum_{\mathbf{z}\in\mathcal{Z}_i}\pi_i(\mathbf{z})
+[F_c(\mathbf{z})-g(\mathbf{z})]^2+\Omega(g)\right\},
+\label{eq:lime}
+\end{equation}
+where $\Omega(g)$ penalises surrogate complexity. Absolute LIME coefficients were aggregated only to assess broad agreement with SHAP rankings; they were not treated as a second estimate of causal importance. Both methods characterise the fitted prediction function, and their outputs depend on the chosen background distribution, perturbation mechanism, and representation of predictor dependence \cite{instanceshap2023,jung2023}.
+
+\begin{algorithm}[tbp]
+\caption{Permutation-SHAP Procedure for Global Model Auditing}
+\label{alg:shap}
+\small
+\setlength{\abovedisplayskip}{3pt}
+\setlength{\belowdisplayskip}{3pt}
+\begin{algorithmic}[1]
+
+\Require Fitted prediction pipeline $F$, training matrix $X_{tr}$,
+explanation sample $X_e$
+\Ensure Ranked global feature-importance vector $I$
+
+\State Sample a fixed background set:
+\[
+B\subset X_{tr}
+\]
+
+\State Define the complete prediction function:
+\[
+h(z)=F(\operatorname{decode}(z))
+\]
+
+\State Initialise the permutation-based SHAP explainer
+using $h$ and background $B$
+
+\State Evaluate SHAP values for all observations in $X_e$:
+\[
+\Phi=\operatorname{SHAP}(h,X_e,B)
+\]
+
+\For{each feature $j=1,\ldots,d$}
+
+    \State Aggregate absolute class-specific contributions:
+    \[
+    I_j\gets
+    \frac{1}{n_eC}
+    \sum_{i=1}^{n_e}
+    \sum_{c\in\mathcal{C}}
+    \left|\Phi_{ij}^{(c)}\right|
+    \]
+
+\EndFor
+
+\State Rank features in descending order of $I_j$
+
+\State \Return Ranked importance vector $I$
+
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Feature relationships and stacking-model local effects}
+\label{sec:ale}
+Two additional diagnostics were used to examine dependence structure among predictors and the fitted stack's local behaviour. First, Spearman rank correlation was computed across the nine numerical predictors on the development partition, to characterise monotonic association independent of the standardisation applied in Eq.~\eqref{eq:standardise}. Second, a two-dimensional Accumulated Local Effects (ALE) surface was computed directly from the fitted stacking pipeline for the joint effect of Sleep Duration and Quality of Sleep on the predicted probability of insomnia, using a $6\times6$ quantile grid. Unlike SHAP, ALE conditions on the local data density and is therefore less sensitive to feature correlation when estimating joint effects; it was accumulated by summing corner-difference finite effects across grid cells and centring the resulting surface to zero mean.
+
+Fig.~\ref{fig:relationships}(a) reports a Spearman correlation of 0.88 between Sleep Duration and Quality of Sleep. Stress Level correlates negatively with them ($-0.79$ and $-0.90$, respectively). Systolic and diastolic blood pressure correlate at 0.98, and Physical Activity Level and Daily Steps at 0.82. These values describe dependence, not SHAP importance: Stress Level is absent from the displayed voting SHAP bar chart, and Quality of Sleep is its lowest displayed feature. Panel (b) shows positive and negative regions of a non-monotonic centred ALE surface. The vertical axis is a centred effect on the insomnia probability output, not an absolute probability. The plot does not establish a monotonic dose-response, a plateau beyond sample medians, or causality.
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\safeincludegraphics[width=\linewidth]{feature_relationships_ale.png}
+\caption{(a) Spearman rank correlation among numerical predictors on the development partition. (b) Two-dimensional Accumulated Local Effects surface for Sleep Duration and Quality of Sleep on the stacking classifier's predicted probability of insomnia.}
+\label{fig:relationships}
+\end{figure*}
+
+
+\section{Experimental protocol}
+\label{sec:protocol}
+The evaluation used the isolated 75-observation test partition. Accuracy was reported alongside class-specific precision, recall, and F1 score, as well as macro- and support-weighted summaries. For class $c$, the principal relationships were
+\begin{equation}
+\begin{aligned}
+P_c&=\frac{TP_c}{TP_c+FP_c}, &
+R_c&=\frac{TP_c}{TP_c+FN_c},\\
+F1_c&=\frac{2P_cR_c}{P_c+R_c},
+\end{aligned}
+\label{eq:classmetrics}
+\end{equation}
+with
+\begin{equation}
+\operatorname{Accuracy}=\frac{1}{n_{te}}\sum_{i=1}^{n_{te}}\mathbb{I}(\hat y_i=y_i),
+\qquad
+F1_{macro}=\frac{1}{C}\sum_{c\in\mathcal{C}}F1_c.
+\label{eq:aggregatemetrics}
+\end{equation}
+Macro-F1 was emphasised because it assigns equal weight to each outcome category despite unequal class frequencies. One-vs-rest ROC--AUC was additionally computed from the predicted class probabilities to summarise ranking quality independently of the classification threshold, using
+\begin{equation}
+\operatorname{AUC}_c=\int_0^1 \mathrm{TPR}_c(\mathrm{FPR}_c^{-1}(t))\,dt,
+\qquad
+\operatorname{AUC}_{macro}=\frac{1}{C}\sum_{c\in\mathcal{C}}\operatorname{AUC}_c.
+\label{eq:auc}
+\end{equation}
+The proposed stack and soft-voting comparator were additionally evaluated through paired bootstrap resampling of test observations. For bootstrap sample $b$, the paired effect was
+\begin{equation}
+\Delta^{(b)}=\operatorname{Accuracy}^{(b)}_{stack}
+-\operatorname{Accuracy}^{(b)}_{vote},
+\label{eq:bootstrap}
+\end{equation}
+and the 2.5th and 97.5th percentiles of $\{\Delta^{(b)}\}$ formed the 95\% interval. An exact McNemar test used only the discordant prediction counts between the two models on the identical test partition. As a further robustness check, supplementary outputs were supplied for 13 additional stratified 80:20 splits (Section~\ref{sec:repeatedsplit}) to assess sensitivity to the specific partition used for the primary evaluation. The analysis assesses discrimination within the available benchmark; it does not substitute for repeated internal validation, probability calibration, subgroup analysis, or evaluation in an untouched external cohort \cite{collins2024,riley2024,rileysample2024}.
+
+
+\section{Results}
+\label{sec:results}
+The proposed stacking model correctly classified 73 of 75 test observations, yielding an accuracy of 97.33\% and a macro-F1 score of 0.96. It identified 13 of 15 insomnia observations, all 44 observations with no recorded disorder, and all 16 sleep-apnea observations. Both errors involved insomnia being classified as sleep apnea; no observation was incorrectly assigned to the no-recorded-disorder category. The RF--XGBoost soft-voting comparator achieved 96.00\% accuracy and a macro-F1 score of 0.94 on the same test set.
+
+\begin{table*}[width=\textwidth,pos=!tbp]
+\centering
+\caption{Class-specific and aggregate predictive performance of the proposed stack on the 75-observation hold-out set.}
+\label{tab:metrics}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Class/model & Precision & Recall & F1 & Support \\
+\midrule
+Insomnia & 1.00 & 0.87 & 0.93 & 15 \\
+No recorded disorder & 1.00 & 1.00 & 1.00 & 44 \\
+Sleep Apnea & 0.89 & 1.00 & 0.94 & 16 \\
+Macro average & 0.96 & 0.96 & 0.96 & 75 \\
+Weighted average & 0.98 & 0.97 & 0.97 & 75 \\
+\midrule
+Soft voting macro average & 0.94 & 0.95 & 0.94 & 75 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Discrimination via ROC--AUC}
+\label{sec:rocauc}
+
+One-vs-rest ROC--AUC was computed on the same test partition of 75 observations to assess ranking quality independently of the classification rule used in Table~\ref{tab:metrics}. 
+
+\begin{figure}[pos=!tbp]
+\centering
+\safeincludegraphics[width=\linewidth]{stacking_roc_auc.png}
+\caption{Stacking-classifier ROC display: insomnia (blue, AUC 0.994), no recorded disorder (orange, labelled ``None'', AUC 1.000), and sleep apnea (green, AUC 0.997). The dotted curve is the micro-average (AUC 0.998), and the dashed diagonal is the random-classifier reference. Macro-average (0.997) and weighted-average (0.998) AUC appear as numerical annotations below the plot, not as separate curves.}
+\label{fig:rocauc}
+\end{figure}
+
+Per-class AUC was 0.994 for insomnia, 1.000 for no recorded disorder, and 0.997 for sleep apnea, giving a macro-average ROC--AUC of 0.997 and a support-weighted average of 0.998 (Fig.~\ref{fig:rocauc}). These values summarise high overall ranking performance. The multiclass decision rule is the argmax in Eq.~\eqref{eq:problem}, not a fixed 0.5 probability threshold. Aggregate AUC values alone do not locate the two misclassified observations relative to the decision boundaries.
+
+
+\section{Comparison with ensemble baselines}
+\label{sec:comparison}
+Across the five ensemble configurations in Table~\ref{tab:basecomparison}, the proposed RF--XGBoost stack produced the highest point estimate for accuracy (97.33\%). This value was 1.33 percentage points above RF--XGBoost soft voting and 2.63 percentage points above the best reported ANN ensemble.
+
+\begin{table*}[width=\textwidth,pos=!tbp]
+\centering
+\caption{Descriptive accuracy comparison between the proposed RF--XGBoost stack and ensemble baselines. ANN results were reported by Alom et al. \cite{alom2024}.}
+\label{tab:basecomparison}
+\small
+\begin{tabularx}{0.74\linewidth}{@{}X c@{}}
+\toprule
+Model & Accuracy \\
+\midrule
+ANN Bagging ensemble & 94.70\% \\
+ANN Boosting ensemble & 94.70\% \\
+ANN Weighted Average ensemble & 92.90\% \\
+RF--XGBoost soft voting & 96.00\% \\
+Proposed RF--XGBoost stacking & \textbf{97.33\%} \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+
+\subsection{Paired Statistical Comparison}
+\label{sec:paired}
+Table~\ref{tab:stats} presents the reported paired uncertainty summary; Fig.~\ref{fig:confusions} shows the corresponding model-specific confusion matrices.
+
+Because stacking and soft voting were evaluated on identical test observations, their predictions permitted a paired comparison. The manuscript reports that a 20,000-resample bootstrap estimated a stacking-minus-soft-voting accuracy difference of 1.33 percentage points, with a 95\% percentile interval of $-2.67$ to $5.33$ percentage points. The reported correctness table was $\begin{bmatrix}71&1\\2&1\end{bmatrix}$, with rows ordered as soft voting correct/incorrect and columns as stacking correct/incorrect. Its off-diagonal counts, 1 and 2, give an exact McNemar $p=1.000$. Observation-level paired predictions are not available here to independently verify the table or regenerate the bootstrap interval. Thus, the observed numerical advantage was not statistically distinguishable from chance variation in this small test sample.
+
+\begin{table*}[width=\textwidth,pos=!tbp]
+\centering
+\caption{Reported paired uncertainty summary for stacking versus soft voting. Accuracy totals agree with Fig.~\ref{fig:confusions}; the paired table and bootstrap interval require verification from observation-level predictions.}
+\label{tab:stats}
+\small
+\begin{tabular}{Q{0.42\linewidth}Q{0.38\linewidth}}
+\toprule
+Analysis & Result \\
+\midrule
+Accuracy: soft voting & 96.00\% \\
+Accuracy: reported stacking & 97.33\% \\
+Point difference & 1.33 percentage points \\
+Paired bootstrap, 20,000 resamples & 95\% CI $[-2.67,5.33]$ percentage points \\
+Exact McNemar test & $p=1.000$; null not rejected \\
+Interpretation & Descriptive improvement; external validation required \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\safeincludegraphics[width=0.94\linewidth]{confusion_matrices.png}
+\caption{Confusion matrices on the common 75-observation test set: (a) RF--XGBoost soft voting and (b) the proposed RF--XGBoost stack. Rows denote reference outcomes and columns denote predicted outcomes.}
+\label{fig:confusions}
+\end{figure*}
+
+
+
+\subsection{Global SHAP Analysis}
+\label{sec:globalshap}
+
+Global SHAP analysis of the RF--XGBoost soft-voting comparator revealed that
+systolic blood pressure was the most influential predictor in the fitted model,
+followed by body-mass-index (BMI) category and physical-activity level
+(Fig.~\ref{fig:posthoc}, panel a). These variables exhibited the largest mean
+absolute SHAP values, indicating that they contributed most strongly, on
+average, to variation in the model's predicted sleep-disorder probabilities
+across the explanation sample. Sleep duration, age, and diastolic blood pressure
+formed a second tier of influential features, suggesting that the classifier
+also relied substantially on demographic, cardiovascular, and sleep-related
+characteristics when generating its predictions.
+
+The observed SHAP ranking provides a global interpretation of feature importance
+by summarizing the average magnitude of each variable's contribution to the
+fitted prediction function over the explanation sample. Thus, a higher mean absolute
+SHAP value indicates greater overall model dependence on a feature, but it does
+not specify whether higher or lower values of that feature increase the predicted
+probability of a sleep disorder for a particular individual. Moreover, these
+feature-attribution results should be interpreted as descriptions of the model's
+predictive behavior rather than evidence of biological or causal effects.
+Associations captured by the RF--XGBoost ensemble may reflect nonlinear
+relationships, interactions among predictors, correlations between measured
+variables, or characteristics specific to the analyzed dataset. Accordingly,
+the SHAP results are most appropriately interpreted as identifying variables
+that were most influential for prediction within the fitted model, rather than
+as establishing independent causal determinants of sleep-disorder status.
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\begin{minipage}[t]{0.48\linewidth}
+\centering
+\textbf{(a)}\\[0.4ex]
+\safeincludegraphics[width=\linewidth]{voting_shap_importance.png}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\centering
+\textbf{(b)}\\[0.4ex]
+\safeincludegraphics[width=\linewidth]{voting_lime_sample0.png}
+\end{minipage}
+\caption{Complementary post-hoc explanations for the RF--XGBoost soft-voting comparator: (a) global mean absolute SHAP values, where longer bars indicate greater average model dependence; and (b) a LIME explanation for one test observation classified as insomnia, where green and red bars respectively increase and decrease the local class score. Neither analysis supports causal interpretation.}
+\label{fig:posthoc}
+\end{figure*}
+
+The local LIME analysis in Fig.~\ref{fig:posthoc} (panel b) characterises the decision surface around one test observation classified as insomnia. Lower physical activity, systolic blood pressure within 130--135, and an overweight body-mass-index category contributed positively to the local insomnia score, whereas the occupation and gender indicators contributed negatively. This explanation is observation-specific and should not be interpreted as a population-level risk model.
+
+\subsection{Stacking-model post-hoc explanation}
+\label{sec:stackpost}
+Permutation SHAP and LIME were additionally reported for the stacking classifier in its preprocessed (scaled and one-hot encoded) feature space, rather than to the soft-voting comparator alone. A background sample of 25 development-partition observations and an explanation sample of 35 test-partition observations were used, with \texttt{max\_evals} set to twice the number of preprocessed features plus one as the reported evaluation budget; convergence and attribution stability were not established by this setting alone.
+
+Fig.~\ref{fig:stackbeeswarm}(b) shows the stacking classifier's SHAP beeswarm for insomnia. Pink denotes higher feature values and blue lower values. Higher systolic blood pressure and age generally appear on the positive-SHAP side; lower sleep duration, daily steps, quality of sleep, and physical activity also tend to have positive attributions. Stress Level is not displayed separately. Categorical rows represent individual one-hot indicators, not continuous BMI or occupation scales, and the last row aggregates 11 other features. This panel does not establish attribution directions for sleep apnea or causal effects.
+
+The radar audit in Fig.~\ref{fig:shaplime}(a) compares normalised SHAP mean absolute attributions with LIME mean absolute local weights. Occupation has the largest SHAP radius and diastolic blood pressure the largest LIME radius. The profiles differ notably for occupation and sleep duration. This SHAP ranking is inconsistent with the systolic-pressure-led voting bar chart in Fig.~\ref{fig:posthoc}(a); the radar artwork does not identify its model, sample, or aggregation details. It is therefore treated as a separate supplied audit, not a normalised version of that voting chart or evidence that SHAP and LIME agree for the same experiment.
+
+Fig.~\ref{fig:stacklime} is labelled as a stacking-classifier LIME explanation for insomnia. Standardised Daily Steps $\leq-0.54$ has the largest positive local weight, followed by the displayed systolic-pressure interval and low Physical Activity Level. Absence of the Accountant, Salesperson, and Engineer occupation indicators has negative local weights. Numerical thresholds are standardised values rather than raw units; categorical conditions refer to one-hot indicators. The artwork does not report an observation index, reference outcome, or predicted probability, so these details and identity with voting sample 0 cannot be verified from the figure. The Teacher indicator has a positive weight here but a negative weight in the voting explanation: this difference between model-specific surrogates is not itself a contradiction and does not establish a population effect.
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\begin{minipage}[t]{0.48\linewidth}
+\centering
+\textbf{(a)}\\[0.4ex]
+\safeincludegraphics[width=\linewidth]{shap_lime_radar.png}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\centering
+\textbf{(b)}\\[0.4ex]
+\safeincludegraphics[width=\linewidth]{stacking_shap_beeswarm_insomnia.png}
+\end{minipage}
+\caption{Attribution displays: (a) a supplied normalised SHAP--LIME radar audit with unspecified model and sample; its SHAP ranking differs from the voting bar chart in Fig.~\ref{fig:posthoc}(a); (b) the stacking classifier's insomnia beeswarm, with colour denoting feature value and horizontal position denoting SHAP attribution. These are not established as matched panels from the same model and explanation sample.}
+\label{fig:shaplime}
+\label{fig:stackbeeswarm}
+\end{figure*}
+
+\begin{figure}[pos=!tbp]
+\centering
+\safeincludegraphics[width=\linewidth]{567.png}
+\caption{LIME explanation labelled for the stacking classifier's insomnia output. Green and red bars show positive and negative local surrogate weights. Numerical conditions use standardised features and categorical conditions use one-hot indicators. The plot does not report the observation index, true label, or predicted probability.}
+\label{fig:stacklime}
+\end{figure}
+
+\section{Stacking Ablation Study}
+\label{sec:ablation}
+
+Fig.~\ref{fig:modelcomparison} compares seven labelled configurations: full RF--XGBoost--SVM stacking; stacking without RF, without XGBoost, and without SVM; RF--XGBoost soft voting; RF alone; and XGBoost alone. Blue, orange, and green bars denote accuracy, macro-F1, and macro ROC--AUC. The full stack and the variants without RF or without XGBoost have visually similar scores. Removing SVM corresponds to lower accuracy and macro-F1 in this chart, while AUC remains high across variants; the full stack is not visibly superior to every reduced configuration. Exact values are not printed on the bars and are not inferred from their heights. The voting accuracy bar is below 0.95, whereas the primary confusion matrix explicitly reports 0.96. This figure therefore cannot serve as a matched ablation of the primary 75-record experiment without its split, aggregation details, and prediction outputs. It is retained only as a separate exploratory comparison; no claim about SVM necessity or statistical superiority follows from it.
+\begin{figure}[pos=!tbp]
+\centering
+\safeincludegraphics[width=\linewidth]{output.png}
+\caption{Supplied seven-configuration ablation chart: full RF--XGBoost--SVM stack, three reduced stacks, RF--XGBoost soft voting, RF alone, and XGBoost alone. Bars show accuracy, macro-F1, and macro ROC--AUC. This chart contains no ANN results, and its evaluation protocol has not been reconciled with the primary 75-observation hold-out experiment.}
+\label{fig:modelcomparison}
+\end{figure}
+
+\subsection{Repeated-split Robustness Check}
+\label{sec:repeatedsplit}
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\safeincludegraphics[width=1\linewidth]{12.png}
+\caption{Random-split sensitivity: RF--XGBoost soft voting (left) and RF--XGBoost--SVM-labelled stacking (right), across seeds 50--650. Red lines denote training accuracy and blue lines test accuracy. The horizontal axis is split seed, not training-set size. The shaded bands are reproduced from the supplied artwork, which does not specify their confidence level or calculation.}
+\label{fig:repeatedsplit}
+\end{figure*}
+
+Fig.~\ref{fig:repeatedsplit} labels its left panel RF--XGBoost soft voting and its right panel RF--XGBoost--SVM stacking. The horizontal axis lists 13 seeds, 50 through 650 in increments of 50; it is a partition-sensitivity display, not a learning curve. The accompanying reported stacking summaries are training accuracy 0.926 (SD 0.007) and test accuracy 0.924 (SD 0.027). They cannot be recomputed exactly from the plotted points without per-seed outputs. Numerically, the primary accuracy $73/75=0.9733$ lies approximately 1.83 reported SDs above 0.924, but this is not a validation comparison for a confirmed common model because the learner configurations differ in their labels. The small reported mean training--test gap does not rule out split-specific optimism. Neither the band calculation nor equivalence of the tuning and preprocessing procedures can be verified from the artwork.
+
+
+
+% Place all results figures, including Figure 11, before the Discussion.
+\FloatBarrier
+\section{Discussion}
+\label{sec:discussion}
+The primary hold-out summary reports a stacking accuracy of 97.33\%, 1.33 percentage points above soft voting. The paired results reported in Section~\ref{sec:paired} do not establish a statistically significant improvement. They require confirmation from paired prediction files; the architecture-provenance discrepancy described in Section~\ref{sec:architecture} also prevents attributing this difference to a particular base learner. Error patterns provide additional context beyond aggregate accuracy. Recall was perfect for the no-recorded-disorder and sleep-apnea categories, whereas two insomnia observations were assigned to sleep apnea. This asymmetry may reflect overlap in the available lifestyle and physiological features, consistent with the partial PCA overlap noted in Section~\ref{sec:pca} and the ROC--AUC pattern in Section~\ref{sec:rocauc}, but the sample is too small to determine whether it represents a stable clinical phenotype or split-specific variation. In a decision-support setting, such errors would have different consequences from missed apnea; operating thresholds should therefore be selected using clinically defined utilities rather than accuracy alone \cite{riley2024,futureai2025}.
+
+The documented RF--XGBoost specification combines bagging and boosting, whereas the SVM-labelled supplementary outputs introduce a third model family. Out-of-fold stacking offers a mechanism for combining probability estimates, but the learner-specific contribution cannot be established by comparing outputs with unresolved configuration and evaluation provenance. The full implementation must also confirm that every learned transformation is fitted within the appropriate training partition \cite{borisov2024,kapoor2023}.
+
+SHAP, LIME, and the ALE surface in Section~\ref{sec:ale} add complementary views of model behaviour, but none resolves causal validity, fairness, or calibration. Attribution rankings may change with the background and perturbation design, and agreement between explanation methods does not establish a medical mechanism \cite{instanceshap2023,jung2023,pesapane2026}. Before any translational use, the model would require probability calibration, decision-curve analysis, subgroup-specific error assessment, robustness to missingness and measurement shift, and evaluation of how clinicians interpret its outputs \cite{hu2024,tripodai2024,futureai2025}.
+
+
+\section{Limitations}
+Several limitations constrain generalisation. First, the sample is modest and its recruitment mechanism is insufficiently documented, limiting assessment of selection and spectrum bias. Second, blank outcomes were assigned to no recorded disorder; without clinical adjudication, this rule may introduce outcome misclassification. Third, primary performance was estimated from one hold-out partition; additional repeated-split summaries were supplied, but their configuration provenance remains unresolved and the paired analysis has limited power. Fourth, no independent cohort, temporal validation set, or prospective assessment was available. Fifth, the outcomes do not encode polysomnographic severity, treatment status, comorbidity burden, or longitudinal change. Finally, the explanation analysis is sensitive to the selected background distribution and to dependence among predictors. The unresolved two- versus three-learner configuration and missing prediction files also limit computational reproducibility. These limitations preclude claims of diagnostic validity or clinical readiness.
+
+\section{Conclusion}
+The documented RF--XGBoost stacking protocol combines out-of-fold probabilities and encoded predictors in a logistic meta-learner. Its labelled primary confusion matrix supports 97.33\% accuracy and macro-F1 0.96, compared with 96.00\% accuracy for soft voting. This difference is one correct prediction and does not establish superiority. The SVM-labelled ablation and repeated-split outputs, and the radar audit with unspecified model provenance, cannot be used as matched evidence for the primary configuration. Reproducible code, verified outcome parsing, and observation-level predictions are required to resolve these limitations. Repeated internal validation, calibration, subgroup assessment, and independent clinical evaluation remain necessary before any decision-support claim.
+\section*{Declaration of Generative AI and AI-assisted technologies}
+
+During the preparation of this work, the authors used Claude 3.5 Sonnet to improve manuscript readability, correct grammatical and spelling errors, refine writing style, streamline sentence structure, and assist with LaTeX formatting. The specific prompts employed are detailed below:
+
+\begin{enumerate}
+    \item \textbf{Grammar, Spelling, and Style Refinement:} ``Review the grammar, spelling, and flow of the following text. Shorten long sentences, enhance readability, and suggest more appropriate academic wording while maintaining the original scientific meaning.''
+    \item \textbf{Literature and Search Assistance:} ``Help identify relevant core concepts, keywords, and structural frameworks related to the following topic to guide our literature search strategy.''
+    \item \textbf{LaTeX Formatting Support:} ``Convert the following text into clean, standard LaTeX code. Ensure appropriate environment structures, fix any syntax errors, and apply proper mathematical delimiters where necessary.''
+\end{enumerate}
+
+\section*{Author Contributions}
+
+Rifat Bin Reza contributed to conceptualization (Lead), methodology (Lead),
+software (Lead), investigation (Lead), formal analysis (Lead), data curation
+(Equal), visualization (Lead), writing--original draft (Lead), and
+writing--review \& editing (Lead). Md Ahadul Haque Suvo contributed to data
+curation (Equal), formal analysis (Equal), investigation (Supporting),
+visualization (Supporting), and writing--review \& editing (Supporting).
+Atair Rahman Alvi contributed to methodology (Supporting), investigation
+(Equal), formal analysis (Supporting), and writing--review \& editing (Supporting), and data curation.
+
+
+\section*{Declaration of competing interest}
+
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\section*{Funding}
+
+This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
+
+\section*{Ethics statement}
+
+This study involved secondary computational analysis of the publicly available Sleep Health and Lifestyle Dataset on Kaggle \cite{kaggle2023}. No participants were recruited or contacted, no interventions were performed, and no new human or animal data were collected. The administrative Person ID field was excluded before modelling.
+
+\section*{Data availability}
+
+The Sleep Health and Lifestyle Dataset is publicly available on Kaggle. Access to the source dataset does not require permission from the corresponding author. Dataset reuse is subject to the publisher's licence and terms.
+
+\begin{thebibliography}{99}
+\bibitem{aasm2023} American Academy of Sleep Medicine. International Classification of Sleep Disorders. 3rd ed., text revision. Darien, IL, USA: American Academy of Sleep Medicine, 2023.
+\bibitem{korkalainen2024} Korkalainen H, Kainulainen S, Islind AS, {\'{O}}skarsd{\'{o}}ttir M, Strassberger C et al. Review and perspective on sleep-disordered breathing research and translation to clinics. Sleep Medicine Reviews 2024; 73: 101874. doi: 10.1016/j.smrv.2023.101874.
+\bibitem{giorgi2025} Giorgi L, Nardelli D, Moffa A, Iafrati F, Di Giovanni S et al. Advancements in obstructive sleep apnea diagnosis and screening through artificial intelligence: a systematic review. Healthcare 2025; 13 (2): 181. doi: 10.3390/healthcare13020181.
+\bibitem{bazoukis2023} Bazoukis G, Bollepalli SC, Chung CT, Li X, Tse G et al. Application of artificial intelligence in the diagnosis of sleep apnea. Journal of Clinical Sleep Medicine 2023; 19 (7): 1337--1363. doi: 10.5664/jcsm.10532.
+\bibitem{kapoor2023} Kapoor S, Narayanan A. Leakage and the reproducibility crisis in machine-learning-based science. Patterns 2023; 4 (9): 100804. doi: 10.1016/j.patter.2023.100804.
+\bibitem{efthimiou2024} Efthimiou O, Seo M, Chalkou K, Debray T, Egger M et al. Developing clinical prediction models: a step-by-step guide. BMJ 2024; 386: e078276. doi: 10.1136/bmj-2023-078276.
+\bibitem{collins2024} Collins GS, Dhiman P, Ma J, Schlussel MM, Archer L et al. Evaluation of clinical prediction models (part 1): from development to external validation. BMJ 2024; 384: e074819. doi: 10.1136/bmj-2023-074819.
+\bibitem{jung2023} Jung J, Lee H, Jung H, Kim H. Essential properties and explanation effectiveness of explainable artificial intelligence in healthcare: a systematic review. Heliyon 2023; 9 (5): e16110. doi: 10.1016/j.heliyon.2023.e16110.
+\bibitem{allen2024} Allen B. The promise of explainable AI in digital health for precision medicine: a systematic review. Journal of Personalized Medicine 2024; 14 (3): 277. doi: 10.3390/jpm14030277.
+\bibitem{pesapane2026} Pesapane F, Rotili A, Penco S, Nicosia L, Cassano E. Evidence over explanations: put medical AI to the test. npj Artificial Intelligence 2026; 2 (1): 53. doi: 10.1038/s44387-026-00092-4.
+\bibitem{tyagi2023} Tyagi PK, Agarwal D. Systematic review of automated sleep apnea detection based on physiological signal data using deep learning algorithm: a meta-analysis approach. Biomedical Engineering Letters 2023; 13 (3): 293--312. doi: 10.1007/s13534-023-00297-5.
+\bibitem{abdalrazaq2024} Abd-alrazaq A, Aslam H, AlSaad R, Alsahli M, Ahmed A et al. Detection of sleep apnea using wearable AI: systematic review and meta-analysis. Journal of Medical Internet Research 2024; 26: e58187. doi: 10.2196/58187.
+\bibitem{borisov2024} Borisov V, Leemann T, Se{\ss}ler K, Haug J, Pawelczyk M et al. Deep neural networks and tabular data: a survey. IEEE Transactions on Neural Networks and Learning Systems 2024; 35 (6): 7499--7519. doi: 10.1109/\allowbreak TNNLS.2022.3229161.
+\bibitem{alom2024} Alom MS, Jeba SM, Debnath A, Aurpa TT, Siddiqua R. Enhancing sleep disorder diagnosis with a machine learning approach using ensemble neural networks. In: Proceedings of the 11th International Conference on Networking, Systems, and Security; 2024. pp. 48--55. doi: 10.1145/3704522.3704533.
+\bibitem{alabi2023} Alabi RO, Elmusrati M, Leivo I, Almangush A, M{\"a}kitie AA. Machine learning explainability in nasopharyngeal cancer survival using LIME and SHAP. Scientific Reports 2023; 13 (1): 8984. doi: 10.1038/s41598-023-35795-0.
+\bibitem{tripodai2024} Collins GS, Moons KGM, Dhiman P, Riley RD, Beam AL et al. TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods. BMJ 2024; 385: e078378. doi: 10.1136/bmj-2023-078378.
+\bibitem{futureai2025} Lekadir K, Frangi AF, Porras AR, Glocker B, Cintas C et al. FUTURE-AI: international consensus guideline for trustworthy and deployable artificial intelligence in healthcare. BMJ 2025; 388: e081554. doi: 10.1136/bmj-2024-081554.
+\bibitem{kaggle2023} Kaggle. Sleep Health and Lifestyle Dataset. 2023. Available at: \url{https://www.kaggle.com/datasets/uom190346a/sleep-health-and-lifestyle-dataset} (accessed 6 August 2026).
+\bibitem{instanceshap2023} Babaei G, Giudici P. InstanceSHAP: an instance-based estimation approach for Shapley values. Behaviormetrika 2023; 51 (1): 425--439. doi: 10.1007/s41237-023-00208-z.
+\bibitem{riley2024} Riley RD, Archer L, Snell KIE, Ensor J, Dhiman P et al. Evaluation of clinical prediction models (part 2): how to undertake an external validation study. BMJ 2024; 384: e074820. doi: 10.1136/bmj-2023-074820.
+\bibitem{rileysample2024} Riley RD, Snell KIE, Archer L, Ensor J, Debray TPA et al. Evaluation of clinical prediction models (part 3): calculating the sample size required for an external validation study. BMJ 2024; 384: e074821. doi: 10.1136/bmj-2023-074821.
+\bibitem{hu2024} Hu C, Gao C, Li T, Liu C, Peng Z. Explainable artificial intelligence model for mortality risk prediction in the intensive care unit: a derivation and validation study. Postgraduate Medical Journal 2024; 100 (1182): 219--227. doi: 10.1093/postmj/qgad144.
+\bibitem{breiman2001} Breiman L. Random forests. Machine Learning 2001; 45 (1): 5--32. doi: 10.1023/A:1010933404324.
+\bibitem{chen2016} Chen T, Guestrin C. XGBoost: a scalable tree boosting system. In: Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining; San Francisco, CA, USA; 2016. pp. 785--794. doi: 10.1145/2939672.2939785.
+\bibitem{wolpert1992} Wolpert DH. Stacked generalization. Neural Networks 1992; 5 (2): 241--259. doi: 10.1016/S0893-6080(05)80023-1.
+\bibitem{cortes1995} Cortes C, Vapnik V. Support-vector networks. Machine Learning 1995; 20 (3): 273--297. doi: 10.1007/BF00994018.
+\bibitem{lundberg2017} Lundberg SM, Lee SI. A unified approach to interpreting model predictions. In: Advances in Neural Information Processing Systems 30; 2017. pp. 4765--4774.
+\bibitem{ribeiro2016} Ribeiro MT, Singh S, Guestrin C. ``Why should I trust you?'': explaining the predictions of any classifier. In: Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining; San Francisco, CA, USA; 2016. pp. 1135--1144. doi: 10.1145/2939672.2939778.
+\bibitem{apley2020} Apley DW, Zhu J. Visualizing the effects of predictor variables in black box supervised learning models. Journal of the Royal Statistical Society: Series B 2020; 82 (4): 1059--1086. doi: 10.1111/rssb.12377.
+\bibitem{fawcett2006} Fawcett T. An introduction to ROC analysis. Pattern Recognition Letters 2006; 27 (8): 861--874. doi: 10.1016/\allowbreak j.patrec.2005.10.010.
+
+\end{thebibliography}
+
+\end{document}

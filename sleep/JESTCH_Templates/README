@@ -1,0 +1,36 @@
+cas-dc.cls and cas-common.sty are the new class and style files, respectively 
+created for typesetting Elsevier's JESTECH journal articles which go through 
+Complex Article Service (CAS) workflow. These are now accepted for 
+submitting articles, both in Elsevier's electronic submission system and elsewhere.
+
+Bugs and problems with cas-dc.cls and cas-common.sty may be reported to the
+developers of the class and style via elsarticle@stmdocs.in.
+
+The file manifest.txt provides a list of the files in the els-cas-templates bundle. 
+The following are the main files available:
+
+- cas-dc-template.tex, template file for double column journals
+- cas-dc-template.pdf, PDF of the cas-dc-template.tex
+- cas-dc.cls, class file
+- cas-common.sty, additional macro package for formatting
+- elsarticle-num.bst or cas-model2-names.bst, BibTeX style files
+
+The documentation file is elsdoc-cas.tex in the doc directory. To
+compile it:
+
+1. pdflatex elsdoc-cas
+2. pdflatex elsdoc-cas
+3. pdflatex elsdoc-cas
+
+or
+
+use the makefile. Use the target `all' (eg: make all) in doc
+directory.
+
+The above procedure will create a print version, namely elsdoc-cas.pdf.
+
+Copyright 2019-2020, Elsevier. Bugs, feature requests, suggestions and
+comments may be mailed to elsarticle@stmdocs.in. cas-dc.cls, cas-common.sty
+related documentations and supporting packages are released under the
+LATEX Project Public Licence, either version 1.2 or any later
+version. This work has the LPPL maintenance status 'author-maintained'.

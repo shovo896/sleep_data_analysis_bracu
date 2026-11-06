@@ -1,0 +1,709 @@
+%% 
+%% Copyright 2019-2020 Elsevier Ltd
+%% 
+%% This file is part of the 'CAS Bundle'.
+%% --------------------------------------
+%% 
+%% It may be distributed under the conditions of the LaTeX Project Public
+%% License, either version 1.2 of this license or (at your option) any
+%% later version. The latest version of this license is in
+%%    http://www.latex-project.org/lppl.txt
+%% and version 1.2 or later is part of all distributions of LaTeX
+%% version 1999/12/01 or later.
+%% 
+%% The list of all files belonging to the 'CAS Bundle' is
+%% given in the file `manifest.txt'.
+%% 
+%% Template article for cas-dc documentclass for 
+%% double column output.
+
+%\documentclass[a4paper,fleqn,longmktitle]{cas-dc}
+\documentclass[a4paper,fleqn]{cas-dc}
+
+%\usepackage[authoryear,longnamesfirst]{natbib}
+%\usepackage[authoryear]{natbib}
+\usepackage[numbers,sort&compress]{natbib}
+
+%%%Author definitions
+\def\tsc#1{\csdef{#1}{\textsc{\lowercase{#1}}\xspace}}
+\tsc{WGM}
+\tsc{QE}
+\tsc{EP}
+\tsc{PMS}
+\tsc{BEC}
+\tsc{DE}
+%%% 
+
+\begin{document}
+\let\ref\Cref 		
+\let\eqref\Cref 	
+\let\autoref\Cref 	
+\let\WriteBookmarks\relax
+\def\floatpagepagefraction{1}
+\def\textpagefraction{.001}
+\shorttitle{CV Radhakrishnan et~al. / Engineering Science and Technology, an International Journal}
+%\shortauthors{CV Radhakrishnan et~al.}
+\footmarks{\url{https://doi.org/xx.xxxx/j.jestch.20xx.xx.xxx}\\
+	2215-0986/\begingroup\tiny{©}\endgroup~20xx Karabuk University. Publishing services by Elsevier B.V.\\
+	This is an open access article under the CC BY-NC-ND license (\url{http://creativecommons.org/licenses/by-nc-nd/4.0/}).
+}
+
+\bookmark[named = FirstPage]{This is a specimen $a_b$ title} % Title bookmark used in the pdf
+%**************** If the title is short, stay on the first line use [mode = short_title] otherwise ******************
+%***************************************** use [mode = title] below ***************************************
+\title [mode = short_title]{This is a specimen $a_b$ title}    
+
+% Title mark notes if desired
+%\tnotemark[1,2]
+
+%\tnotetext[1]{This document is the results of the research
+%   project funded by the National Science Foundation.}
+
+%\tnotetext[2]{The second title footnote which is a longer text matter
+%   to fill through the whole text width and overflow into
+%   another line in the footnotes area of the first page.}
+
+\author[1,3]{CV Radhakrishnan}[type=editor, 
+                        auid=000,bioid=1,
+                        prefix=Sir,
+                        %role=Researcher,
+                        %orcid=0000-0001-7511-2910
+                        ]
+\cormark[1]
+%\fnmark[1]								% URL related footnote marking
+\ead{cvr_1@tug.org.in}
+%\ead[url]{www.cvr.cc, cvr@sayahna.org} % Author URL 
+
+\credit{Conceptualization of this study, Methodology, Software}
+
+\address[1]{Elsevier B.V., Radarweg 29, 1043 NX Amsterdam, The Netherlands}
+
+\author[2,3]{Han Theh Thanh}[style=chinese]
+
+\author[2,3]{CV Rajagopal}[
+   %role=Co-ordinator,
+   suffix=Jr,
+   ]
+%\fnmark[2]								% URL related footnote marking
+\ead{cvr3@sayahna.org}
+%\ead[URL]{www.sayahna.org}				% Author URL
+
+\credit{Data curation, Writing - Original draft preparation}
+
+\address[2]{Sayahna Foundation, Jagathy, Trivandrum 695014, India}
+
+\author
+[1,3]
+{Rishi T.} % If the author's name hits "Check for updates" button, use \\ at the break point of his/her name like {\\Rishi T.} or {First Middle\\ Lastname}
+% NOTE: Compile first without \\ then the proper separation again afterwards !!! (Not doing so, results unwanted footnote and Credit authorship contribution at the very end with \credit command if used.)
+\cormark[2]
+%\fnmark[1,3]							% URL related footnote marking
+\ead{rishi@stmdocs.in}
+%\ead[URL]{www.stmdocs.in}				% Author URL
+
+\address[3]{STM Document Engineering Pvt Ltd., Mepukada,
+    Malayinkil, Trivandrum 695571, India}
+
+\author[4]{ \\Salih Baris Ozturk} % Author's name hits "Check for updates" button, \\ is used at the break point of his name. If \\ is desired at the beginning of the name, place a space just before the \\ as in the above example.
+% NOTE: Compile first without \\ and the space, then the proper separation again afterwards !!! (Not doing so, results unwanted footnote and Credit authorship contribution at the very end with \credit command if used.)
+%\cormark[1]
+\ead{ozturksb@itu.edu.tr}
+
+\address[4]{Istanbul Technical University, Department of Electrical Engineering,
+	Maslak, Istanbul 34469, Turkey}
+
+\credit{Modification for the final layout}
+
+\cortext[cor1]{Corresponding author.}
+\cortext[cor2]{Principal corresponding author.}
+%\fntext[fn1]{This is the first author footnote. but is common to third
+%  author as well.}
+%\fntext[fn2]{Another author footnote, this is a very long footnote and
+%  it should be a really long footnote. But this footnote is not yet
+%  sufficiently long enough to make two lines of footnote text.}
+
+%\nonumnote{This note has no numbers. In this work we demonstrate $a_b$
+%  the formation Y\_1 of a new type of polariton on the interface
+%  between a cuprous oxide slab and a polystyrene micro-sphere placed
+%  on the slab. The evanescent field of the resonant whispering 
+%  gallery mode (\WGM) of the micro sphere has a substantial 
+%  gradient, and therefore effectively couples with the
+%  quadrupole $1S$ excitons in cuprous oxide.}
+
+\nonumnote{Peer review under responsibility of Karabuk University.}
+
+\begin{abstract} 
+This template helps you to create a properly formatted \LaTeX\ manuscript.
+
+\noindent\texttt{\textbackslash begin{abstract}} \dots 
+\texttt{\textbackslash end{abstract}} and
+\verb+\begin{keyword}+ \verb+...+ \verb+\end{keyword}+ 
+which
+contain the abstract and keywords respectively. Each keyword shall be separated by a \verb+\sep+ command. \\
+\noindent  \lipsum[1] 
+%\vspace*{0.85cm} % If for some reason abstract is short of Keywords, include some vspacing as much as needed
+\end{abstract}
+
+% If any graphical abstract is needed
+%\begin{graphicalabstract}
+%\includegraphics{figs/grabs.pdf}
+%\end{graphicalabstract}
+
+% If any highlights is needed above the cover page
+%\begin{highlights}
+%\item Research highlights item 1
+%\item Research highlights item 2
+%\item Research highlights item 3
+%\end{highlights}
+
+% Article history - Should only be set by an editor
+\received {xx Month 20xx}
+\revised {xx Month 20xx}
+\accepted {xx Month 20xx}
+\online {xx Month 20xx}
+
+\begin{keywords}
+Quadrupole exciton \sep 
+Polariton \sep 
+\WGM \sep 
+\BEC	
+\end{keywords}
+
+\maketitle
+\section{Introduction}
+The Elsevier cas-dc class is based on the
+standard article class and supports almost all of the functionality of
+that class. In addition, it features commands and options to format the
+
+\renewcommand\labelitemi{\small$\bullet$} % Change the size of the bullets in itemize
+\begin{itemize} 
+\itemsep=-1pt 		% Item separation between items
+\itemindent=-3pt 	% Extra indentation from the left margin if necessary
+\item document style \item baselineskip \item front
+matter \item keywords and MSC codes \item theorems, definitions and
+proofs \item lables of enumerations \item citation style and labeling.
+\end{itemize}
+
+This class depends on the following packages
+for its proper functioning: 
+
+\begin{enumerate}
+\itemsep=-1pt 		% Adjusting item separation
+\itemindent=0pt 	% Extra indentation from the left margin if necessary
+\item {natbib.sty} for citation processing;
+\item {geometry.sty} for margin settings;
+\item {fleqn.clo} for left aligned equations;
+\item {graphicx.sty} for graphics inclusion;
+\item {hyperref.sty} optional packages if hyperlinking is
+  required in the document;
+\end{enumerate}  
+
+All the above packages are part of any
+standard \LaTeX{} installation.
+Therefore, the users need not be
+bothered about downloading any extra packages.
+
+% Dummy text
+\lipsum[3]
+%
+\section{Installation}
+%\url{http://www.elsevier.com/locate/latex/} % Splitting is much convenient with \url than \href
+The package is available at author resources page at Elsevier
+\href{http://www.elsevier.com/locate/latex/}{\nolinkurl{http://www.elsevier.com/locate/latex/}}. % Allowing to break the url
+The class may be moved or copied to a place, usually,
+\verb+$TEXMF/tex/latex/elsevier/+, %$%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+or a folder which will be read by \LaTeX{} during document compilation. The \TeX{} file
+database needs updation after moving/copying class file.  Usually,
+we use commands like \verb+mktexlsr+ or \verb+texhash+ depending
+upon the distribution and operating system. 
+
+\subsection{Subsection of Installation}
+
+\lipsum[2]
+
+\subsubsection{Subsubsection of Installation}
+\label{subsubsection}
+\lipsum[2]
+
+\paragraph{Installation}
+
+\lipsum[2]
+
+\section{Front matter}
+
+The author names and affiliations could be formatted in two ways:
+\begin{enumerate}[(1)]
+\itemsep=-2pt 		% Separation between items
+\itemindent=12pt 	% Extra indentation if necessary (12 pt matches with the text indentation)
+\item Group the authors per affiliation.
+\item Use footnotes to indicate the affiliations. 
+
+\end{enumerate}
+See the front matter of this document for examples. 
+You are recommended to conform your choice to the journal you 
+are submitting to. 
+Several figure, section, table representation examples are given as: \ref{FIG:2}(a) and (b).
+This is \ref{subsubsection}. 
+Figure and table referencing can be given as \Cref{FIG:1} and \Cref{tbl1}.
+Two consecutive figures can be written as \Cref{FIG:1,FIG:2} or \ref{FIG:1,FIG:2}.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[scale=1]{figs/Fig1.pdf}
+	\caption{Caption place holder.}
+	\label{FIG:1}
+\end{figure}
+
+%\begin{figure*}
+%	\centering
+%	\begin{subfigure}[t]{0.5\textwidth}
+%		\centering
+%		\includegraphics[height=2in]{figs/Fig1.pdf}
+%		\caption{}
+%	\end{subfigure}%
+%	~ 
+%	\begin{subfigure}[t]{0.5\textwidth}
+%		\centering
+%		\includegraphics[height=2in]{figs/Fig1.pdf}
+%		\caption{}
+%	\end{subfigure}\\
+%	\caption{Caption place holder.}
+% \label{FIG:2}
+%\end{figure*}
+
+% Span subfigure example on double column
+\begin{figure*}
+	%\centering -> This is irrelevant because of the '.5\textwidth' as advised below.
+	\begin{subfigure}[t]{.5\textwidth}\centering
+		\includegraphics[width=.5\columnwidth]{figs/Fig1.pdf}
+		\caption{}						% Put your sub-caption here if necessary 
+	\end{subfigure}%
+	\begin{subfigure}[t]{.5\textwidth}\centering
+		\includegraphics[width=.5\columnwidth]{figs/Fig1.pdf}
+		\caption{}						% Put your sub-caption here if necessary 
+	\end{subfigure}
+\caption{(a) First subfigure, and (b) second subfigure. Caption place holder. This is the subfigure landscape example on double column.}
+\label{FIG:2}
+\end{figure*}
+
+% Sub figure example on single column
+\begin{figure}[ht]
+	\begin{subfigure}{.5\textwidth}
+		\centering
+		% include first image
+		\includegraphics[width=.5\linewidth]{figs/Fig1.pdf}  
+		\caption{}  					% Put your sub-caption here if necessary 
+		\label{FIG:3a}
+	\end{subfigure}
+	\begin{subfigure}{.5\textwidth}
+		\centering
+		% include second image
+		\includegraphics[width=.5\linewidth]{figs/Fig1.pdf}  
+		\caption{} 						% Put your sub-caption here if necessary 
+		\label{FIG:3b}
+	\end{subfigure}
+	\caption{Put your caption here. This is the subfigure example on single column.} 	% Put your caption here
+	\label{FIG:3}
+\end{figure}
+
+
+\section{Bibliography styles}
+
+There are various bibliography styles available. You can select the
+style of your choice in the preamble of this document. These styles are
+Elsevier styles based on standard styles like Harvard and Vancouver.
+Please use Bib\TeX\ to generate your bibliography and include DOIs in URL
+style whenever available.
+
+Here are four sample references: 
+\cite{Fortunato2010}
+\cite{Fortunato2010,NewmanGirvan2004} 	
+\cite{Fortunato2010,Vehlowetal2013} 	
+\cite{Fortunato2010,NewmanGirvan2004,Vehlowetal2013,Chenetal2013,Clausetetal2004,FabricioLiang2013,Gregory2011,FortunatoBarthelemy2007,HullermeierRifqi2009,Nepuszetal2008,Newman2013}. 					
+
+\section{Floats}
+{Figures} may be included using the command,\linebreak 
+\verb+\includegraphics+ in
+combination with or without its several options to further control
+graphic. \verb+\includegraphics+ is provided by {graphic[s,x].sty}
+which is part of any standard \LaTeX{} distribution. 
+{graphicx.sty} is loaded by default. \LaTeX{} accepts figures in
+the \linebreak postscript format while pdf\LaTeX{} accepts {*.pdf},
+{*.mps} (metapost), {*.jpg} and {*.png} formats. 
+pdf\LaTeX{} does not accept graphic files in the postscript format. 
+
+\begin{figure}
+	\centering
+	\includegraphics[scale=1]{figs/Fig1.pdf}
+	\caption{The evanescent light - $1S$ quadrupole coupling
+	($g_{1,l}$) scaled to the bulk exciton-photon coupling
+	($g_{1,2}$). The size parameter $kr_{0}$ is denoted as $x$ and
+	the \PMS is placed directly on the cuprous oxide sample ($\delta
+	r=0$, See also \protect\ref{FIG:3}).}
+	\label{FIG:4}
+\end{figure}
+
+% Span figure example on double column
+\begin{figure*}
+	\centering
+	\includegraphics[width=\textwidth,height=2in]{figs/Fig2.pdf}
+	\caption{Schematic of formation of the evanescent polariton on
+		linear chain of \PMS. The actual dispersion is determined by 
+		the ratio of two coupling parameters such as exciton-\WGM coupling
+		and \WGM-\WGM coupling between the microspheres.}
+	\label{FIG:5}
+\end{figure*}
+
+The \verb+table+ environment is handy for marking up tabular
+material. If users want to use {multirow.sty},
+{array.sty}, etc., to fine control/enhance the tables, they
+are welcome to load any package of their choice and
+{cas-dc.cls} will work in combination with all loaded
+packages.
+% Single column table example
+\begin{table}[width=1\linewidth,cols=4,pos=t]
+\caption{This is a test caption. This is a test caption. This is a test
+caption. This is a test caption.}\label{tbl1}
+\begin{tabular*}{\tblwidth}{@{} LLLL@{} }
+\toprule
+Col 1 & Col 2 & Col 3 & Col4\\
+\midrule
+12345 & 12345 & 123 & 12345 \\
+12345 & 12345 & 123 & 12345 \\
+12345 & 12345 & 123 & 12345 \\
+12345 & 12345 & 123 & 12345 \\
+12345 & 12345 & 123 & 12345 \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+% Span table example on double column
+\begin{table*}[width=1.0\textwidth,cols=4,pos=h]
+	\caption{This is a test caption. This is a test caption. This is a test caption. This is a test caption.}
+	\begin{tabular*}{\tblwidth}{@{} LLLLLLL@{} }
+		\toprule
+		Col 1 & Col 2 & Col 3 & Col4 & Col5 & Col6 & Col7\\
+		\midrule
+		12345 & 12345 & 123 & 12345 & 123 & 12345 & 123 \\
+		12345 & 12345 & 123 & 12345 & 123 & 12345 & 123 \\
+		12345 & 12345 & 123 & 12345 & 123 & 12345 & 123 \\
+		12345 & 12345 & 123 & 12345 & 123 & 12345 & 123 \\
+		12345 & 12345 & 123 & 12345 & 123 & 12345 & 123 \\
+		\bottomrule
+	\end{tabular*}
+\end{table*}
+
+\section{Theorem and theorem like environments} % \section[Theorem and ...]{Theorem and theorem like environments}
+
+{cas-dc.cls} provides a few shortcuts to format theorems and
+theorem-like environments with ease. In all commands, the options that
+are used with the \verb+\newtheorem+ command will work exactly in the same
+manner. {cas-dc.cls} provides three commands to format theorem or
+theorem-like environments: 
+
+\begin{verbatim}
+ \newtheorem{theorem}{Theorem}
+ \newtheorem{lemma}[theorem]{Lemma}
+ \newdefinition{rmk}{Remark}
+ \newproof{pf}{Proof}
+ \newproof{pot}{Proof of Theorem \ref{thm2}}
+\end{verbatim}
+
+The \verb+\newtheorem+ command formats a
+theorem in \LaTeX's default style with italicized font, bold font
+for theorem heading and theorem number at the right hand side of the
+theorem heading. It also optionally accepts an argument which
+will be printed as an extra heading in parentheses. 
+
+\begin{verbatim}
+  \begin{theorem} 
+   For system (8), consensus can be achieved with 
+   $\|T_{\omega z}$ ...
+     \begin{eqnarray}\label{10}
+     ....
+     \end{eqnarray}
+  \end{theorem}
+\end{verbatim}  
+
+\newtheorem{theorem}{Theorem}
+
+\begin{theorem}
+For system (8), consensus can be achieved with 
+$\|T_{\omega z}$ ...
+\begin{eqnarray}\label{10}
+	\lambda_{1S}/2 \pi \left({\epsilon_{Cu2O}-1}\right)^{1/2} = 414 \mbox{
+	\AA} \gg a_B = 4.6 \mbox{ \AA}  
+\end{eqnarray}
+\end{theorem}
+
+The \verb+\newdefinition+ command is the same in
+all respects as its \verb+\newtheorem+ counterpart except that
+the font shape is roman instead of italic. Both
+\verb+\newdefinition+ and \verb+\newtheorem+ commands
+automatically define counters for the environments defined.
+
+The \verb+\newproof+ command defines proof environments with
+upright font shape. No counters are defined. 
+
+% See the \newtheorem example below:
+\begin{theorem}\label{thm}
+	The \WGM evanescent field penetration depth into the cuprous oxide
+	adjacent crystal is much larger than the \QE radius: 
+	
+	\begin{equation*} % Equation without number (needs *)
+	\lambda_{1S}/2 \pi \left({\epsilon_{Cu2O}-1}\right)^{1/2} = 414 \mbox{
+		\AA} \gg a_B = 4.6 \mbox{ \AA}  
+	\end{equation*}
+	
+\end{theorem}
+
+% See the \newdefinition example below:
+\newdefinition{definition}{Definition}
+\begin{definition}
+	The bulk and evanescent polaritons in cuprous oxide
+	are formed through the quadrupole part of the light-matter
+	interaction:
+	
+	\begin{equation*}
+	H_{int} = \frac{i e }{m \omega_{1S}} {\bf E}_{i,s} \cdot {\bf p}
+	\end{equation*}
+	
+\end{definition}
+%
+\begin{equation} 	% Equation with number
+\lambda_{1S}/2 \pi \Big({\epsilon_{Cu2O}-1}\Big)^{1/2} = 414 \mbox{
+	\AA} \gg a_B = 4.6 \mbox{ \AA}  
+\label{Eq.2}
+\end{equation}
+
+\begin{equation}
+y_{t} = \phi_{1} y_{t-1} + \epsilon_{t}
+\label{Eq.3}
+\end{equation}
+
+% Subequation example
+\begin{subequations}
+\setlength{\jot}{6pt} % Spacing between equations in the group
+	\begin{gather}
+	R_0 = 0 \label{Eq.4a}\\
+	N_0 = 0 \label{Eq.4b}
+	\end{gather}
+	\label{Eq.4}
+\end{subequations}
+%
+\begin{equation}
+D\left(C_{A},C_{B}\right) = \min X_{A}\in C_{A},X_{B}\in C_{B} 
+d\left(X_{A},X_{B}\right)
+\label{Eq.5}
+\end{equation}
+
+%\begin{equation}
+%\setlength{\jot}{6pt} % Spacing between equations in the group
+%\begin{aligned}
+%T_{P} &= K_{T}. \rho . n^{2}_{p} . D^{4}_{p} \\
+%Q_{P} &= K_{Q}. \rho . n^{2}_{p} . D^{5}_{p} \\
+%N_{P} &= K_{N}. \rho . n^{2}_{p} . D^{6}_{p} \\
+%K_{P} &= K_{K}. \rho . n^{2}_{p} . D^{7}_{p}
+%\end{aligned}
+%\end{equation}
+
+\begin{equation}
+y_{t} = \phi_{1} y_{t-1} + \epsilon_{t}
+\label{Eq.6}
+\end{equation}
+% For proper spacing add % before and/or after equations
+% \newproof command helps to define proof and custom proof environments without counters as provided in the example code. % Given below is an example of proof of theorem kind. 
+\newproof{pot}{Proof of \ref{thm}}
+\begin{pot}
+	The photon part of the polariton trapped inside the \PMS moves as
+	it would move in a micro-cavity of the effective modal volume $V
+	\ll 4 \pi r_{0}^{3} /3$. Consequently, it can escape through the
+	evanescent field. This evanescent field essentially has a quantum
+	origin and is due to tunneling through the potential caused by
+	dielectric mismatch on the \PMS surface. Therefore, we define the
+	\emph{evanescent} polariton (\EP) as an evanescent light - \QE
+	coherent superposition as in Eq. \eqref{Eq.2}. Eq. \eqref{Eq.6} can be referenced in this form. Multiple equations can be represented as in Eqs. \eqref{Eq.5,Eq.6}. Multiple consecutive equations can be shown as Eqs. \eqref{Eq.3,Eq.4,Eq.5,Eq.6}.
+\end{pot}
+
+\section{Enumerated and Itemized Lists} % \section[Enumerated ...]{Enumerated and Itemized Lists}
+{cas-dc.cls} provides an extended list processing macros
+which makes the usage a bit more user friendly than the default
+\LaTeX{} list macros. With an optional argument to the
+\verb+\begin{enumerate}+ command, you can change the list counter
+type and its attributes. If you would like to use classical enumeration/itemize styles,
+you may comment out "Customized Enumeration" section in the cas-common.sty file
+and use \verb+\usepackage{enumerate}+ or\linebreak \verb+\usepackage{enumitem}+ that can be added to the cas-dc.cls file instead.
+
+\begin{verbatim}
+ \begin{enumerate}[1.]
+ \item The enumerate environment starts with an optional
+   argument `1.', so that the item counter will be suffixed
+   by a period.
+ \item You can use `a)' for alphabetical counter and '(i)' 
+  for roman counter.
+  \begin{enumerate}[a)]
+    \item Another level of list with alphabetical counter.
+    \item One more item before we start another.
+    \item One more item before we start another.
+    \item One more item before we start another.
+    \item One more item before we start another.
+\end{verbatim}
+
+Further, the enhanced list environment allows one to prefix a
+string like `step' to all the item numbers.  
+
+\begin{verbatim}
+ \begin{enumerate}[Step 1.]
+  \item This is the first step of the example list.
+  \item Obviously this is the second step.
+  \item The final step to wind up this example.
+ \end{enumerate}
+\end{verbatim}
+
+% See the \begin{enumerate example below:
+\begin{enumerate}[(1)]
+	\item The enumerate environment starts with an optional
+	argument ‘1.’ so that the item counter will be suffixed
+	by a period as in the optional argument.
+	\item If you provide a closing parenthesis to the number in the
+	optional argument, the output will have closing parenthesis
+	for all the item counters.
+	\item You can use ‘(a)’ for alphabetical counter and ’(i)’ for
+	roman counter.
+	\begin{enumerate}[a)]
+		\item Another level of list with alphabetical counter.
+		\item One more item before we start another.
+		\begin{enumerate}[(i)]
+			\item This item has roman numeral counter.
+			\item Another one before we close the third level.
+		\end{enumerate}
+		\item Third item in second level.
+	\end{enumerate}
+	\item All list items conclude with this step.
+\end{enumerate}
+
+\section{Cross-references}
+In electronic publications, articles may be internally 
+hyperlinked. Hyperlinks are generated from proper cross-references in the article. For example, the words \textcolor{black!80}{Fig.~1} will never be more than simple text,
+whereas the proper cross-reference \verb+\ref{tiger}+ or \verb+\Cref{tiger}+ may be
+turned into a hyperlink to the figure itself:
+Fig.~1. In the same way,
+the words Ref.~[1] will fail to turn into a
+hyperlink; the proper cross-reference is \verb+\cite{Knuth96}+.
+Cross-referencing is possible in \LaTeX{} for sections,
+subsections, formulae, figures, tables, and literature
+references.
+
+\section{Bibliography}
+
+Two bibliographic style files (\verb+*.bst+) are provided ---
+{model1-num-names.bst}, {model2-names.bst}, and {elsarticle-num.bst} --- the first one can be
+used for the numbered scheme. This can also be used for the numbered
+with new options of {natbib.sty}. The second one is for the author year
+scheme. When you use model2-names.bst, the citation commands will be
+like \verb+\citep+,  \verb+\citet+, \verb+\citealt+ etc. However when
+you use model1-num-names.bst, you may use only \verb+\cite+ command. The third one is 
+used in this template which is resembling to the final layout.
+
+\verb+thebibliography+ environment. Each reference is a \linebreak
+\verb+\bibitem+ and each \verb+\bibitem+ is identified by a label,
+by which it can be cited in the text:
+
+\noindent In connection with cross-referencing and
+possible future hyperlinking, it is not a good idea to collect
+more that one literature item in one \verb+\bibitem+. The
+so-called Harvard or author-year style of referencing is enabled
+by the \LaTeX{} package {natbib}. With this package the
+literature can be cited as follows:
+
+\begin{itemize}
+%\begin{enumerate}[\textbullet]
+\itemsep=-1pt 		% Adjusting item separation
+\itemindent=-3pt 	% Extra indentation from the left margin if necessary
+\item Parenthetical: \verb+\citep{WB96}+ produces (Wettig \& Brown, \break 1996).
+\item Textual: \verb+\citet{ESG96}+ produces Elson et al. (1996).
+\item An affix and part of a reference: %\break 
+\verb+\citep[e.g.][Ch. 2]{Gea97}+ produces (e.g. Governato et
+al., 1997, Ch. 2).
+%\end{enumerate}
+\end{itemize}
+
+In the numbered scheme of citation, \verb+\cite{<label>}+ is used,
+since \verb+\citep+ or \verb+\citet+ has no relevance in the numbered
+scheme. {natbib} package is loaded by {cas-dc} with
+\verb+numbers+ as default option. You can change this to author-year
+or harvard scheme by adding option \verb+authoryear+ in the class
+loading command. If you want to use more options of the {natbib}
+package, you can do so with the \verb+\biboptions+ command. For
+details of various options of the {natbib} package, please take a
+look at the {natbib} documentation, which is part of any standard
+\LaTeX{} installation.
+
+%\appendix
+%\section{My Appendix}
+%Appendix sections are coded under \verb+\appendix+.
+
+%\verb+\printcredits+ command is used after appendix sections to list 
+%author credit taxonomy contribution roles tagged using \verb+\credit+ 
+%in frontmatter.
+
+\section{Conclusion}
+
+\lipsum[2]
+
+\setcounter{equation}{0} % Reset the equation counter to 1 for Appendix
+\renewcommand{\theequation}{A.\arabic{equation}} % Modify the equation for Appendix A
+\pdfbookmark[section]{Appendix A}{} % Include bookmark in the pdf (write the same name from the section below)
+\section*{Appendix A}
+Appendix sections are coded under \verb+\appendix+.
+
+\verb+\printcredits+ command is used after appendix sections to list 
+author credit taxonomy contribution roles tagged using \verb+\credit+ 
+in frontmatter.
+
+\pdfbookmark[subsection]{A.1 Subsection of appendix a}{} % Include bookmark in the pdf (write the same name from the Abstract subsection below)
+\subsection*{A.1 Subsection of appendix a}
+
+\lipsum[2] Eq. \eqref{Eq.A1} can be referenced in this form in the Appendix A.
+
+\begin{equation}
+y_{t} = \phi_{1} y_{t-1} + \epsilon_{t}
+\label{Eq.A1}
+\end{equation}
+
+\pdfbookmark[subsubsection]{A.1.1 Subsubsection of appendix a}{} % Include bookmark in the pdf (write the same name from the Abstract subsection below)
+\subsubsection*{A.1.1 Subsubsection of appendix a}
+
+\lipsum[4]
+
+\pdfbookmark[section]{Declaration of competing interest / Conflict of interest}{} % Include bookmark in the pdf (write the same name from the section below)
+\section*{Declaration of competing interest / Conflict of interest}
+The authors declare that they have no known competing financial
+interests or personal relationships that could have appeared
+to influence the work reported in this paper.
+%The authors declare no conflict of interest.
+
+\pdfbookmark[section]{Acknowledgment}{} % Include bookmark in the pdf (write the same name from the section below)
+\section*{Acknowledgment}
+The authors would like to thank the editors and anonymous
+reviewers for providing insightful suggestions and comments
+to improve the quality of research paper.
+
+\pdfbookmark[section]{CRediT authorship contribution statement}{} % Include bookmark in the pdf (write the same name from the section below)
+\printcredits
+
+% It is suggested to add the DOI of the each possible reference using the url site style as in the given example.
+\pdfbookmark[section]{References}{} % Include bookmark in the pdf
+\hyphenpenalty=10000 % Almost no hypenation in biblio (higher value means less hypenation)
+%% Loading bibliography style file
+%\bibliographystyle{model1-num-names}
+%\bibliographystyle{cas-model2-names}
+\bibliographystyle{elsarticle-num} 				
+% Loading bibliography database
+\bibliography{cas-refs}
+%\endgroup
+
+\vskip6pt
+
+\end{document}
+

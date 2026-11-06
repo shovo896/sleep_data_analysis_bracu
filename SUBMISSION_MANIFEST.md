@@ -14,7 +14,7 @@ python revised_analysis.py
 
 It recreates `revision_results/metadata.json`, split assignments, per-fold
 metrics, observation-level probabilities, and the paired comparison.  These
-generated files are the source of every numerical claim in the revised paper.
+ge[text](../Desktop/sleep)nerated files are the source of every numerical claim in the revised paper.
 
 Submission files are `revised_submission.pdf` with its `.tex` and `.bib`
 sources, plus `response_to_reviewers.pdf` with editable `.tex` and `.md`
