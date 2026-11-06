@@ -1,0 +1,94 @@
+\section{Materials and Methods}
+\label{sec:methods-revision}
+
+\subsection{Data audit and target definition}
+
+The analysis used the public Sleep Health and Lifestyle Dataset hosted on Kaggle \cite{kaggle2023}. The CSV was read with default missing-value conversion disabled. The target field was then stripped of surrounding whitespace and required to contain only the literal strings \emph{None}, \emph{Insomnia}, and \emph{Sleep Apnea}; the program stops if an empty or undocumented outcome occurs. This audit found 219 literal \emph{None} values, 77 \emph{Insomnia} values, and 78 \emph{Sleep Apnea} values, with no blank or missing target values. Thus, \emph{None} was not created by imputing a blank field. Its clinical meaning is nevertheless unknown: it denotes a source-file category, not clinician-confirmed absence of disease.
+
+Person ID was removed. ``Normal Weight'' was harmonised to ``Normal'', and Blood Pressure was parsed into systolic and diastolic numerical variables. After these deterministic operations, 265 rows duplicated a complete retained predictor profile, leaving 109 unique profiles. Twenty-two profiles had conflicting recorded outcome labels. Predictor-profile groups were therefore defined without using the outcome and were kept wholly within either development or evaluation data.
+
+\begin{table}[width=\columnwidth,pos=!tbp]
+\centering
+\caption{Audit of the outcome field and retained predictor profiles.}
+\label{tab:audit-revision}
+\small
+\begin{tabularx}{\columnwidth}{@{}Y r@{}}
+\toprule
+Item & Count \\
+\midrule
+Rows & 374 \\
+Literal \emph{None} outcomes & 219 \\
+Literal \emph{Insomnia} outcomes & 77 \\
+Literal \emph{Sleep Apnea} outcomes & 78 \\
+Blank or missing outcomes & 0 \\
+Unique retained predictor profiles & 109 \\
+Rows duplicating a retained profile & 265 \\
+Profiles with conflicting recorded outcomes & 22 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Models and duplicate-aware validation}
+
+Numerical predictors were standardised and categorical predictors one-hot encoded. Every fitted transformation was inside its model pipeline. The primary stack used Random Forest (150 trees; minimum leaf size 2), XGBoost (150 estimators; learning rate 0.03; depth 3; row and column subsampling 0.9), and a multinomial logistic meta-learner ($C=1.0$). The meta-learner received only out-of-fold base-model class probabilities; encoded-feature pass-through was not used. These fixed settings were used without test-fold tuning.
+
+Two shuffled repetitions (seeds 17 and 29) of five-fold StratifiedGroupKFold formed the outer evaluation. For every outer-training partition, four-fold StratifiedGroupKFold generated the base-model out-of-fold probabilities. The encoder, scaler, and each base learner were refitted within the corresponding inner training fold. Final base learners were then fitted on the entire outer training partition before outer-test prediction. The matched comparators were RF--XGBoost soft voting, Random Forest, XGBoost, logistic regression, a shallow decision tree, and histogram gradient boosting. All comparators used the same outer folds.
+
+\subsection{Reproducibility and evaluation}
+
+The executable analysis is provided as \texttt{revised\_analysis.py}. It records software versions, seeds, group identifiers, outer-fold assignments, fold-level metrics, and observation-level reference labels, predictions, and class probabilities. Accuracy, macro-F1, multiclass log loss, and multiclass Brier score were calculated per outer fold. For stacking versus soft voting, we report the mean matched fold-level accuracy difference, a 10,000-resample percentile bootstrap interval, and an exact McNemar test on the first repetition's complete out-of-fold predictions. Repeated folds are correlated; these quantities describe internal-validation variability and do not represent external validation.
+
+Post-hoc SHAP, LIME, PCA, and ALE plots from the exploratory analysis are not interpreted as clinical or biological evidence in this revision. The duplicate structure, conflicting labels, and correlated predictors make attribution rankings potentially unstable. Rather than present unsupported local explanations, the released prediction table permits each reported prediction to be audited directly.
+
+\section{Results}
+\label{sec:results-revision}
+
+Table~\ref{tab:performance-revision} gives the ten outer-fold results. Logistic regression had the highest mean accuracy and macro-F1. Stacking had a slightly lower mean accuracy than soft voting, although its mean log loss and Brier score were modestly lower. Thus, the revised analysis does not support a claim that the stack outperforms either soft voting or logistic regression on discrimination.
+
+\begin{table*}[width=\textwidth,pos=!tbp]
+\centering
+\caption{Duplicate-aware repeated outer-validation performance. Values are mean (standard deviation) across ten outer folds. Lower is better for log loss and Brier score.}
+\label{tab:performance-revision}
+\small
+\begin{tabularx}{\textwidth}{@{}Y c c c c@{}}
+\toprule
+Model & Accuracy & Macro-F1 & Log loss & Multiclass Brier \\
+\midrule
+Logistic regression & 0.896 (0.032) & 0.852 (0.073) & 0.441 (0.117) & 0.190 (0.048) \\
+Shallow decision tree & 0.858 (0.037) & 0.807 (0.063) & 0.933 (0.635) & 0.227 (0.057) \\
+Histogram gradient boosting & 0.861 (0.067) & 0.800 (0.083) & 0.620 (0.211) & 0.239 (0.094) \\
+Random Forest & 0.886 (0.034) & 0.837 (0.060) & 0.679 (0.331) & 0.192 (0.049) \\
+XGBoost & 0.889 (0.032) & 0.832 (0.070) & 0.409 (0.108) & 0.191 (0.057) \\
+Soft voting (RF--XGBoost) & 0.890 (0.033) & 0.835 (0.078) & 0.422 (0.105) & 0.189 (0.051) \\
+Stacking (RF--XGBoost) & 0.887 (0.034) & 0.832 (0.069) & 0.397 (0.094) & 0.187 (0.054) \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+The mean stacking-minus-soft-voting accuracy difference was $-0.0031$. Its bootstrap 95\% interval was $-0.0162$ to $0.0070$, which crosses zero. In the first repetition, stacking alone was correct for two observations and soft voting alone was correct for four; the exact McNemar $p$ value was 0.6875. The small number of discordant observations limits power. These results establish neither a stacking advantage nor equivalence.
+
+Figure~\ref{fig:calibration-revision} shows class-wise reliability curves from the first repetition's out-of-fold predictions. The curves and Brier scores are internal diagnostic summaries only; they do not demonstrate calibration in a new population.
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\safeincludegraphics[width=0.92\linewidth]{../../revision_results/calibration_first_repeat.png}
+\caption{Internal class-wise reliability curves from the first duplicate-aware grouped-validation repetition. Curves are based on out-of-fold predictions and are descriptive; an external cohort is required to assess transportable calibration.}
+\label{fig:calibration-revision}
+\end{figure*}
+
+\section{Discussion}
+\label{sec:discussion-revision}
+
+The original single random hold-out estimate was sensitive to duplicate predictor profiles crossing the evaluation boundary. Under duplicate-aware validation, the observed performance is lower and more variable, and logistic regression is competitive with the ensemble. This does not invalidate the computational exercise; it changes its interpretation. The principal contribution is an auditable evaluation protocol for a small, duplicate-rich benchmark, not a new stacking algorithm or evidence of superiority over established models.
+
+The recorded outcome is not a clinically adjudicated diagnostic standard. Sleep duration and quality may also overlap with information used to identify insomnia, and 22 identical predictor profiles have discordant recorded labels. Accordingly, performance on this dataset must be separated from the requirements of real-world clinical screening: a defined intended use, independently adjudicated reference outcomes, prospective evaluation, subgroup assessment, calibration in the target population, and external validation. Attribution displays describe a fitted model, not a biological mechanism; feature dependence can redistribute importance among correlated predictors and across ensemble architectures.
+
+\section{Limitations}
+\label{sec:limitations-revision}
+
+The study uses one small public dataset with undocumented collection provenance and no external clinical cohort. The literal \emph{None} category may still introduce classification bias because its clinical semantics are not established. Repeated grouped folds share the same source dataset and are not independent replications. Model settings were fixed rather than optimised through a broad hyperparameter search. The reported probability and calibration summaries are internal only. These limitations preclude diagnostic, treatment, or deployment claims.
+
+\section{Conclusion}
+\label{sec:conclusion-revision}
+
+This revision retains RF--XGBoost stacking as the primary computational configuration but evaluates it with verified outcome coding, duplicate-aware fold assignment, fold-specific preprocessing, matched comparators, and released prediction-level artefacts. The stack did not exceed soft voting or logistic regression in mean accuracy or macro-F1. The work should therefore be interpreted as a reproducible benchmark audit of recorded sleep-status labels, not as validated clinical risk stratification or diagnostic evidence.
