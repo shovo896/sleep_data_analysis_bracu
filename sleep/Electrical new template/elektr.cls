@@ -158,7 +158,12 @@ Elektrik]
           \vskip 6pt
           \hbox to \textwidth{%
             \hfil
-            \includegraphics[height=3.5ex]{elk-creative}%
+            % The supplied journal mark is EPS.  pdfLaTeX requires Ghostscript
+            % to convert EPS, so use a PDF mark when one is supplied and retain
+            % a textual fallback for portable, no-Ghostscript builds.
+            \IfFileExists{elk-creative.pdf}{%
+              \includegraphics[height=3.5ex]{elk-creative.pdf}%
+            }{\textsc{T\"{U}B\.{I}TAK}}%
             \hspace{0.5em}%
             \begin{minipage}[b]{0.9\textwidth}
               {\fontsize{5.7pt}{6.5pt}\selectfont
