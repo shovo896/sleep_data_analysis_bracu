@@ -1,5 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1793983521.76084 "response_to_reviewers.tex" "response_to_reviewers.pdf" "response_to_reviewers" 1793983522.11446 0
+["pdflatex"] 1793989707.77202 "response_to_reviewers.tex" "response_to_reviewers.pdf" "response_to_reviewers" 1793989708.31711 0
+  "/Users/imac/Library/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1793989594 80059 27ea8bcf6e503e3366fe7fa7d3011735 ""
   "/Users/imac/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1095.600pk" 1793983513.34884 28952 d0a612e862da8ca3baf3b8456e49eb3b ""
   "/Users/imac/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1440.600pk" 1793983511.37598 40112 3aca1b3cd557b1e36383fc739b392df4 ""
   "/Users/imac/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1095.600pk" 1793983512.05032 26208 f3dc64612830217ca32981fc9174cb18 ""
@@ -57,12 +58,11 @@
   "/usr/local/texlive/2026basic/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty" 1750533675 9684 a33a14b82ce60d6e77cb9be689d79ee6 ""
   "/usr/local/texlive/2026basic/texmf-dist/tex/latex/url/url.sty" 1388531844 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "/usr/local/texlive/2026basic/texmf-dist/web2c/texmf.cnf" 1770478701 43630 e9fa012910491fe5ae08a72c3c2997a7 ""
-  "/usr/local/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1792847609 79187 e3f5941707347d15c1721f52279213a2 ""
   "/usr/local/texlive/2026basic/texmf-var/web2c/pdftex/pdflatex.fmt" 1772405612 2966183 588a2f29d0aaf280e3a142a37c2dd621 ""
   "/usr/local/texlive/2026basic/texmf.cnf" 1772405582 628 bbc09d6d38872d53c11bb48dc9b14e88 ""
-  "response_to_reviewers.aux" 1793983522.03648 162 fa61bf9ecf9314f94d51aa32222a725c "pdflatex"
-  "response_to_reviewers.out" 1793983522.01445 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "response_to_reviewers.tex" 1793983517.75649 6305 b90008fba233f3403f4e6209a0944071 ""
+  "response_to_reviewers.aux" 1793989708.22639 162 fa61bf9ecf9314f94d51aa32222a725c "pdflatex"
+  "response_to_reviewers.out" 1793989708.15066 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "response_to_reviewers.tex" 1793989688.20051 6274 6760e4739c58907ab987787430a139fa ""
   (generated)
   "response_to_reviewers.aux"
   "response_to_reviewers.log"

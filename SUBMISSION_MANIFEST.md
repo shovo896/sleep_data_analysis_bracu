@@ -1,25 +1,38 @@
-# Revision artefacts
+# Final targeted revision -- NEURI-D-26-00299
 
-`revised_analysis.py` is the single executable analysis for the revision. The
-companion `revised_stacking_cls.ipynb` runs that exact analysis from Jupyter. It
-reads the raw CSV without outcome imputation, verifies the literal `None`
-label, and uses grouped nested validation so exact predictor duplicates cannot
-cross a development/evaluation boundary.
+Use the files below for the revised submission. They replace the earlier
+exploratory revision drafts at the repository root.
 
-Run:
+## Manuscript
 
-```bash
-python revised_analysis.py
-```
+- `sleep/JESTCH_Templates/NEURI_revision_targeted.tex`: primary manuscript in
+  the original journal template.
+- `sleep/JESTCH_Templates/NEURI_revision_body.tex`: reviewer-aligned Methods,
+  Results, Discussion, Limitations, and Conclusion included by the primary
+  source.
+- `sleep/JESTCH_Templates/NEURI_revision_targeted.pdf`: compiled final
+  manuscript (five pages).
+- `sleep/JESTCH_Templates/calibration_first_repeat.png`: generated internal
+  calibration figure used by the manuscript.
 
-It recreates `revision_results/metadata.json`, split assignments, per-fold
-metrics, observation-level probabilities, and the paired comparison.  These
-ge[text](../Desktop/sleep)nerated files are the source of every numerical claim in the revised paper.
+The original submitted source,
+`sleep/JESTCH_Templates/JESTECH_sleep_stacking_prism_clean.tex`, is unchanged
+for provenance.
 
-Submission files are `revised_submission.pdf` with its `.tex` and `.bib`
-sources, plus `response_to_reviewers.pdf` with editable `.tex` and `.md`
-versions. `revised_submission_package.zip` collects these documents, the code,
-notebook, requirements, and all generated reproducibility artefacts.
+## Response letter
 
-The older exploratory notebooks, including `stacking_cls.ipynb`, are retained
-for provenance only and must not be used to generate manuscript results.
+- `response_to_reviewers.pdf`: compiled point-by-point response.
+- `response_to_reviewers.tex` and `response_to_reviewers.md`: editable source
+  versions.
+
+## Reproducibility package
+
+- `revised_analysis.py`: executable duplicate-aware analysis.
+- `requirements.txt`: required Python packages.
+- `revision_results/`: generated metadata, grouped split assignments,
+  fold-level metrics, observation-level predictions/probabilities, paired
+  statistics, and calibration data/figure.
+
+Run `python3 revised_analysis.py` from the repository root to regenerate
+`revision_results/`. The old `stacking_cls.ipynb` is retained only as source
+provenance and must not be used for manuscript results.

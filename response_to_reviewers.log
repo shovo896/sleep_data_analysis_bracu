@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  6 NOV 2026 22:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  7 NOV 2026 00:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -252,9 +252,9 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 23.
  [1
 
-{/usr/local/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2
-] [3]
-(./response_to_reviewers.aux)
+{/Users/imac/Library/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex
+.map}] [2]
+[3] (./response_to_reviewers.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -281,9 +281,9 @@ s/imac/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1095
 en/ec/ecrm1440.600pk></usr/local/texlive/2026basic/texmf-dist/fonts/type1/publi
 c/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2026basic/texmf-dist/fonts/type1/p
 ublic/amsfonts/cm/cmr10.pfb>
-Output written on response_to_reviewers.pdf (3 pages, 83523 bytes).
+Output written on response_to_reviewers.pdf (3 pages, 83967 bytes).
 PDF statistics:
- 296 PDF objects out of 1000 (max. 8388607)
+ 297 PDF objects out of 1000 (max. 8388607)
  93 compressed objects within 1 object stream
  39 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)

@@ -1,7 +1,7 @@
 # Response to reviewers
 
 **Manuscript:** NEURI-D-26-00299  
-**Revised title:** *Duplicate-Aware Validation of Machine-Learning Models for Recorded Sleep-Status Labels in a Public Lifestyle Dataset*
+**Revised title:** *An Explainable Stacking Framework for Multiclass Recorded Sleep-Status Classification*
 
 We thank the editor and reviewers. The revision substantially changes both the analysis and the paper. We verified that `None` is a literal source-file string rather than a missing value, discovered extensive duplicate predictor profiles after identifier removal, replaced the single hold-out result with repeated duplicate-aware validation, released executable code and all predictions/splits, removed unvalidated explainability analyses, and narrowed the manuscript to a reproducibility-focused benchmark audit. We do not retain the earlier 97.33% single-split result as a primary finding.
 
@@ -51,7 +51,9 @@ We thank the editor and reviewers. The revision substantially changes both the a
 
 ## Files supplied for revision
 
-- `revised_submission.tex` and `revised_references.bib`: clean manuscript source.
+- `sleep/JESTCH_Templates/NEURI_revision_targeted.tex` and
+  `sleep/JESTCH_Templates/NEURI_revision_body.tex`: revised manuscript source
+  in the original journal template.
 - `response_to_reviewers.md`: this point-by-point response.
 - `revised_analysis.py`: executable analysis.
 - `revision_results/`: regenerated metadata, split IDs, metrics, predictions/probabilities, paired statistics, and calibration files.

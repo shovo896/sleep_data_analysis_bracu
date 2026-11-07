@@ -12,8 +12,6 @@
 \newcolumntype{Q}[1]{>{\raggedright\arraybackslash}p{#1}}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \newcommand{\safeincludegraphics}[2][]{\includegraphics[#1]{#2}}
-\newcommand{\anonymousauthorspacer}{\rule{0pt}{16mm}}
-\pdfstringdefDisableCommands{\def\anonymousauthorspacer{}}
 \setlength{\emergencystretch}{2em}
 \renewcommand{\floatpagefraction}{0.65}
 \renewcommand{\dblfloatpagefraction}{0.65}
@@ -22,10 +20,17 @@
 \begin{document}
 \raggedbottom
 \shorttitle{}
-\shortauthors{}
+\shortauthors{Rifat Bin Reza et al.}
 \footmarks{Manuscript transfered to Neuroscience Informatics.}
 \title[mode=title]{An Explainable Stacking Framework for Multiclass Recorded Sleep-Status Classification}
-\author{\anonymousauthorspacer}
+\author[affbrac]{Rifat Bin Reza}[orcid=0009-0006-1865-8419]
+\cormark[1]
+\ead{rifat.bin.reza1@g.bracu.ac.bd}
+\author[affaaub]{Md Ahadul Haque Suvo}[orcid=0009-0000-6756-4773]
+\author[affbrac]{Atair Rahman Alvi}[orcid=0009-0006-5117-8599]
+\address[affbrac]{BSRM School of Engineering, Department of Electrical and Electronics Engineering, Brac University, Dhaka, Bangladesh}
+\address[affaaub]{Aviation and Aerospace University, Department of Avionics Engineering, Dhaka, Bangladesh}
+\cortext[cor1]{Corresponding author.}
 \begin{abstract}
 Small tabular health benchmarks can yield optimistic estimates when duplicate predictor profiles cross validation boundaries. We re-evaluated Random Forest--XGBoost stacking on the public Sleep Health and Lifestyle Dataset (374 records) after auditing outcome coding and duplicate structure. The source file contains 219 literal ``None'', 77 ``Insomnia'', and 78 ``Sleep Apnea'' labels, with no blank outcome values. After identifier removal and deterministic preparation, 265 rows duplicated a retained predictor profile and 22 of 109 profiles had conflicting recorded outcomes. We therefore used two repetitions of five-fold stratified group validation and generated stacking meta-features by four-fold group-aware out-of-fold fitting with preprocessing refit in each fold. No test-fold tuning was performed. Mean outer-fold accuracy (standard deviation) was 0.887 (0.034) for stacking, 0.890 (0.033) for soft voting, and 0.896 (0.032) for logistic regression; macro-F1 values were 0.832, 0.835, and 0.852, respectively. The mean stacking-minus-soft-voting accuracy difference was -0.0031 (bootstrap 95\% interval -0.0162 to 0.0070), and the first-repeat McNemar test was non-significant ($p=0.6875$). The contribution is a reproducible benchmark audit for recorded dataset labels; it is not clinical screening or diagnostic evidence.
 \end{abstract}
@@ -47,7 +52,7 @@ reproducibility
 % \end{highlights}
 
 \maketitle
-\hypersetup{pdfauthor={}}
+\hypersetup{pdfauthor={Rifat Bin Reza, Md Ahadul Haque Suvo, Atair Rahman Alvi}}
 
 \section{Introduction}
 
@@ -72,7 +77,7 @@ Table~\ref{tab:related_work} summarises the related studies and their relevance 
 
 Recent sleep-AI research has concentrated primarily on apnea detection from physiological signals and wearable devices. Contemporary reviews cover electrocardiographic, oximetric, respiratory, and multimodal signal pipelines, and consistently distinguish automated screening from clinically adjudicated diagnosis \cite{bazoukis2023,tyagi2023,abdalrazaq2024,giorgi2025}. This evidence base is informative for clinical framing but is not directly comparable with the present low-dimensional lifestyle dataset, which contains neither raw physiological waveforms nor polysomnographic severity indices. For tabular prediction, recent evidence continues to treat tree ensembles and neural architectures as complementary rather than universally interchangeable model families \cite{borisov2024}. Alom et al. applied ANN bagging, boosting, and weighted averaging to the same sleep-health benchmark used here \cite{alom2024}; their reported accuracies provide the principal literature-derived numerical comparator in this manuscript. In a different clinical setting, Alabi et al. demonstrated that heterogeneous stacking can be paired with SHAP and LIME, but their cancer-survival task, sample construction, and validation design preclude direct performance comparison \cite{alabi2023}.
 
-Beyond single-model approaches, ensemble learning provides a practical means of combining models with different inductive biases on structured data. Bagging-based methods reduce variance through aggregation across decision trees, whereas boosting iteratively focuses model capacity on residual errors and can capture complementary nonlinear decision boundaries. Simple probability averaging combines model outputs but applies a fixed aggregation rule. Stacked generalisation instead learns a second-level mapping from base-model predictions, allowing the final predictor to adapt to complementary predictive patterns among the constituent learners \cite{wolpert1992}. For small structured datasets, however, the construction of the second-level training set is critical: using in-sample base-model predictions can expose the meta-learner to overly optimistic signals. Out-of-fold prediction generation provides a means of training the meta-learner on predictions produced for observations that were not used to fit the corresponding base learner. This methodological consideration motivates the leakage-controlled RF--XGBoost stacking design adopted in the present study. The unresolved methodological question is therefore whether an out-of-fold heterogeneous stack can improve discrimination on this specific benchmark while maintaining strict evaluation separation and transparent uncertainty. The present study addresses this question by comparing RF--XGBoost stacking with RF--XGBoost soft voting on the same hold-out observations, while retaining complementary analyses of model structure and explanation. The comparison is descriptive because the studies do not share an identical evaluation protocol.
+Beyond single-model approaches, ensemble learning provides a practical means of combining models with different inductive biases on structured data. Bagging-based methods reduce variance through aggregation across decision trees, whereas boosting iteratively focuses model capacity on residual errors and can capture complementary nonlinear decision boundaries. Simple probability averaging combines model outputs but applies a fixed aggregation rule. Stacked generalisation instead learns a second-level mapping from base-model predictions, allowing the final predictor to adapt to complementary predictive patterns among the constituent learners \cite{wolpert1992}. For small structured datasets, however, the construction of the second-level training set is critical: using in-sample base-model predictions can expose the meta-learner to overly optimistic signals. Out-of-fold prediction generation provides a means of training the meta-learner on predictions produced for observations that were not used to fit the corresponding base learner. This motivates the duplicate-aware, out-of-fold RF--XGBoost stacking audit used here. The study compares stacking, soft voting, and conventional baselines on the same repeated grouped outer folds; its results are descriptive internal-validation estimates, not clinical performance claims.
 
 
 \begin{table*}[width=\textwidth,pos=!tbp]
@@ -111,7 +116,7 @@ Cancer survival &
 
 Stacking, SHAP, LIME &
 
-Supports explainable stacking \\
+Methodological context only \\
 
 Bazoukis et al. \cite{bazoukis2023} &
 
@@ -143,7 +148,7 @@ Supports heterogeneous models \\
 
 \textbf{Heterogeneous stack} &
 
-\textbf{OOF stacking, XAI, uncertainty} \\
+\textbf{Grouped OOF stacking, calibration, uncertainty} \\
 
 \bottomrule
 
