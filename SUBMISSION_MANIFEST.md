@@ -14,6 +14,11 @@ exploratory revision drafts at the repository root.
   manuscript (five pages).
 - `sleep/JESTCH_Templates/calibration_first_repeat.png`: generated internal
   calibration figure used by the manuscript.
+- `sleep/JESTCH_Templates/architecture_duplicate_aware.png`: generated
+  full-width workflow figure matching the executable grouped-validation code.
+- `sleep/JESTCH_Templates/xai_feature_stability.png` and
+  `sleep/JESTCH_Templates/xai_local_audit.png`: generated full-width,
+  scope-limited XGBoost base-learner XAI figures.
 
 The original submitted source,
 `sleep/JESTCH_Templates/JESTECH_sleep_stacking_prism_clean.tex`, is unchanged
@@ -31,7 +36,8 @@ for provenance.
 - `requirements.txt`: required Python packages.
 - `revision_results/`: generated metadata, grouped split assignments,
   fold-level metrics, observation-level predictions/probabilities, paired
-  statistics, and calibration data/figure.
+  statistics, calibration data/figure, XAI feature-stability tables, and local
+  XAI audit files.
 
 Run `python3 revised_analysis.py` from the repository root to regenerate
 `revision_results/`. The old `stacking_cls.ipynb` is retained only as source

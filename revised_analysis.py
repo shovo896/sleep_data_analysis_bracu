@@ -18,8 +18,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import sklearn
+import shap
 import xgboost
 import matplotlib.pyplot as plt
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 from sklearn.calibration import calibration_curve
 from scipy.stats import binomtest
 from sklearn.base import clone
@@ -43,6 +45,8 @@ LABELS = np.array(["Insomnia", "None", "Sleep Apnea"])
 SEEDS = (17, 29)
 OUTER_FOLDS = 5
 INNER_FOLDS = 4
+XAI_REPEAT = 1
+XAI_STABILITY_FOLDS = 5
 
 
 def load_data(path: Path) -> tuple[pd.DataFrame, np.ndarray, pd.Series, pd.Series]:
@@ -173,6 +177,169 @@ def add_record(rows, predictions, *, repeat, fold, model, indices, groups, y_tru
     rows.append({"repeat": repeat, "fold": fold, "model": model, **metrics(y_true, probabilities)})
 
 
+def original_feature_name(transformed_name: str, X: pd.DataFrame) -> str:
+    """Map a one-hot/preprocessed feature name back to its source column."""
+    name = transformed_name.split("__", 1)[-1]
+    if name in X.columns:
+        return name
+    for column in X.select_dtypes(include=["object"]).columns:
+        if name.startswith(f"{column}_"):
+            return column
+    return name
+
+
+def normalise_shap_values(values) -> np.ndarray:
+    """Handle SHAP's list and ndarray multiclass return conventions."""
+    if hasattr(values, "values"):
+        values = values.values
+    values = np.asarray(values)
+    if isinstance(values, list):
+        values = np.stack(values, axis=-1)
+    if values.ndim != 3:
+        raise ValueError(f"Expected three-dimensional multiclass SHAP values, got {values.shape}.")
+    return values
+
+
+def write_architecture_figure() -> None:
+    """Draw the actual duplicate-aware analysis workflow used by this script."""
+    fig, axis = plt.subplots(figsize=(18, 8.5))
+    axis.set_axis_off()
+    boxes = [
+        (0.03, 0.66, 0.26, 0.23, "1  Data audit", "374 rows\nLiteral outcomes only\nNo target imputation", "#e8f1fb"),
+        (0.37, 0.66, 0.26, 0.23, "2  Deterministic preparation", "Remove Person ID; harmonise BMI\nParse blood pressure\n109 predictor-profile groups", "#e8f1fb"),
+        (0.71, 0.66, 0.26, 0.23, "3  Outer evaluation", "2 shuffled repetitions × 5 folds\nStratifiedGroupKFold\nDuplicate groups never cross folds", "#e8f1fb"),
+        (0.06, 0.17, 0.26, 0.25, "4  Inner stack construction", "Within outer training only:\n4-fold grouped OOF probabilities\nPreprocessing refit in every fold", "#edf7ef"),
+        (0.38, 0.17, 0.26, 0.25, "5  Models", "Random Forest + XGBoost →\nlogistic meta-learner\nNo encoded-feature pass-through", "#edf7ef"),
+        (0.70, 0.17, 0.26, 0.25, "6  Outer-test artefacts", "Predictions + probabilities\nMetrics, calibration, paired test\nXAI stability and local-audit files", "#edf7ef"),
+    ]
+    for x, y, width, height, heading, body, colour in boxes:
+        axis.add_patch(FancyBboxPatch(
+            (x, y), width, height, boxstyle="round,pad=0.012,rounding_size=0.02",
+            facecolor=colour, edgecolor="#2a5c86", linewidth=1.6, transform=axis.transAxes,
+        ))
+        axis.text(x + 0.02, y + height - 0.06, heading, transform=axis.transAxes,
+                  fontsize=13, weight="bold", color="#163d5c", va="top")
+        axis.text(x + width / 2, y + height / 2 - 0.025, body, transform=axis.transAxes,
+                  fontsize=11.2, ha="center", va="center", linespacing=1.45)
+    arrows = [((0.29, 0.775), (0.37, 0.775)), ((0.63, 0.775), (0.71, 0.775)),
+              ((0.84, 0.66), (0.84, 0.46)), ((0.70, 0.295), (0.64, 0.295)),
+              ((0.38, 0.295), (0.32, 0.295)), ((0.18, 0.42), (0.18, 0.62))]
+    for start, end in arrows:
+        axis.add_patch(FancyArrowPatch(start, end, transform=axis.transAxes,
+                                       arrowstyle="-|>", mutation_scale=18,
+                                       linewidth=1.8, color="#2a5c86"))
+    axis.text(0.5, 0.04, "Every learned operation is fitted within the relevant training partition; outer-test groups are never used for fitting or tuning.",
+              transform=axis.transAxes, ha="center", fontsize=11, color="#424242")
+    fig.tight_layout(pad=0.4)
+    fig.savefig(OUTPUT_DIR / "architecture_duplicate_aware.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+
+def write_xai_artifacts(X: pd.DataFrame, y: np.ndarray, groups: pd.Series) -> None:
+    """Create auditable SHAP diagnostics for the XGBoost base learner.
+
+    This is deliberately labelled as a base-learner diagnostic, not an
+    explanation of the full stack.  It uses five outer-test folds from the
+    first grouped repetition and writes both fold-to-fold stability and one
+    local prediction audit with an additivity/fidelity residual.
+    """
+    seed = SEEDS[XAI_REPEAT - 1]
+    outer = StratifiedGroupKFold(n_splits=XAI_STABILITY_FOLDS, shuffle=True, random_state=seed)
+    feature_rows, local_rows = [], []
+    local_metadata = None
+
+    for fold, (train_index, test_index) in enumerate(outer.split(X, y, groups), start=1):
+        X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+        fitted = make_base_pipeline("XGBoost", seed + fold, X_train)
+        fitted.fit(X_train, y[train_index])
+        probabilities = aligned_probabilities(fitted, X_test)
+        preprocessor = fitted.named_steps["preprocessor"]
+        classifier = fitted.named_steps["classifier"]
+        transformed_test = preprocessor.transform(X_test)
+        explainer = shap.TreeExplainer(classifier)
+        shap_values = normalise_shap_values(explainer.shap_values(transformed_test))
+        feature_names = list(preprocessor.get_feature_names_out())
+        all_class_importance = np.abs(shap_values).mean(axis=(0, 2))
+        aggregated: dict[str, float] = {}
+        for feature_name, importance in zip(feature_names, all_class_importance):
+            source = original_feature_name(feature_name, X)
+            aggregated[source] = aggregated.get(source, 0.0) + float(importance)
+        ranking = pd.Series(aggregated).sort_values(ascending=False)
+        for rank, (feature, importance) in enumerate(ranking.items(), start=1):
+            feature_rows.append({"repeat": XAI_REPEAT, "fold": fold, "feature": feature,
+                                 "mean_abs_shap": importance, "rank": rank,
+                                 "explained_model": "XGBoost base learner"})
+
+        if fold == 1:
+            local_position = int(np.argmax(probabilities.max(axis=1)))
+            predicted_class = int(probabilities[local_position].argmax())
+            raw_margin = np.asarray(classifier.predict(transformed_test, output_margin=True))
+            expected = np.asarray(explainer.expected_value)
+            reconstructed_margin = float(expected[predicted_class] + shap_values[local_position, :, predicted_class].sum())
+            fidelity_residual = abs(reconstructed_margin - float(raw_margin[local_position, predicted_class]))
+            local_metadata = {
+                "repeat": XAI_REPEAT, "fold": fold, "source_row": int(test_index[local_position]),
+                "duplicate_group": str(groups.iloc[test_index[local_position]]),
+                "true_label": str(LABELS[y[test_index[local_position]]]),
+                "predicted_label": str(LABELS[predicted_class]),
+                "predicted_probability": float(probabilities[local_position, predicted_class]),
+                "explained_model": "XGBoost base learner (not the stack)",
+                "fidelity_measure": "absolute TreeSHAP additivity residual on raw-margin scale",
+                "fidelity_abs_residual": fidelity_residual,
+            }
+            for class_index, label in enumerate(LABELS):
+                local_metadata[f"p_{label.replace(' ', '_')}"] = float(probabilities[local_position, class_index])
+            for feature_name, value in zip(feature_names, shap_values[local_position, :, predicted_class]):
+                local_rows.append({**local_metadata, "transformed_feature": feature_name,
+                                   "source_feature": original_feature_name(feature_name, X),
+                                   "shap_value_raw_margin": float(value)})
+
+    features = pd.DataFrame(feature_rows)
+    features.to_csv(OUTPUT_DIR / "xai_feature_stability_by_fold.csv", index=False)
+    stability = features.groupby("feature")["mean_abs_shap"].agg(
+        mean="mean", sd="std", min="min", max="max",
+        p10=lambda values: values.quantile(0.10), p90=lambda values: values.quantile(0.90),
+    )
+    rank_summary = features.groupby("feature")["rank"].agg(median_rank="median", min_rank="min", max_rank="max")
+    stability = stability.join(rank_summary).sort_values("mean", ascending=False).reset_index()
+    stability["stability_band"] = "10th--90th empirical percentile across 5 grouped outer folds"
+    stability["explained_model"] = "XGBoost base learner; not the stacked classifier"
+    stability.to_csv(OUTPUT_DIR / "xai_feature_stability_summary.csv", index=False)
+
+    display = stability.head(12).iloc[::-1]
+    fig, axis = plt.subplots(figsize=(13.5, 8.2))
+    lower = (display["mean"] - display["p10"]).clip(lower=0)
+    upper = (display["p90"] - display["mean"]).clip(lower=0)
+    axis.barh(display["feature"], display["mean"], color="#2f6f9f", alpha=0.9)
+    axis.errorbar(display["mean"], display["feature"], xerr=np.vstack([lower, upper]),
+                  fmt="none", color="#173f5f", capsize=4, linewidth=1.5,
+                  label="10th--90th fold-to-fold band")
+    axis.set(xlabel="Mean absolute TreeSHAP value (raw-margin scale)",
+             title="Feature-attribution stability: XGBoost base learner\n(first repeat; five grouped outer-test folds)")
+    axis.grid(axis="x", alpha=0.25)
+    axis.legend(loc="lower right")
+    fig.tight_layout()
+    fig.savefig(OUTPUT_DIR / "xai_feature_stability.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+    local_frame = pd.DataFrame(local_rows)
+    local_frame.to_csv(OUTPUT_DIR / "xai_local_audit.csv", index=False)
+    (OUTPUT_DIR / "xai_local_audit.json").write_text(json.dumps(local_metadata, indent=2) + "\n")
+    plot_rows = local_frame.reindex(local_frame["shap_value_raw_margin"].abs().sort_values(ascending=False).head(12).index).iloc[::-1]
+    fig, axis = plt.subplots(figsize=(13.5, 8.2))
+    colours = np.where(plot_rows["shap_value_raw_margin"] >= 0, "#b64b4b", "#3d7ea6")
+    axis.barh(plot_rows["transformed_feature"], plot_rows["shap_value_raw_margin"], color=colours)
+    axis.axvline(0, color="0.25", linewidth=0.9)
+    axis.set(xlabel="TreeSHAP contribution to predicted-class raw margin",
+             title=(f"Local XGBoost explanation: CSV row {local_metadata['source_row']} (0-based), "
+                    f"true={local_metadata['true_label']}, predicted={local_metadata['predicted_label']}, "
+                    f"P={local_metadata['predicted_probability']:.3f}"))
+    axis.grid(axis="x", alpha=0.25)
+    fig.tight_layout()
+    fig.savefig(OUTPUT_DIR / "xai_local_audit.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+
 def main() -> None:
     OUTPUT_DIR.mkdir(exist_ok=True)
     X, y, groups, raw_outcome = load_data(DATA_PATH)
@@ -185,7 +352,7 @@ def main() -> None:
         ),
         "seeds": list(SEEDS), "outer_folds": OUTER_FOLDS, "inner_folds": INNER_FOLDS,
         "python": sys.version, "platform": platform.platform(),
-        "pandas": pd.__version__, "numpy": np.__version__, "scikit_learn": sklearn.__version__, "xgboost": xgboost.__version__,
+        "pandas": pd.__version__, "numpy": np.__version__, "scikit_learn": sklearn.__version__, "xgboost": xgboost.__version__, "shap": shap.__version__,
         "model_selection": "Fixed specifications; no test-set tuning was performed.",
     }
     (OUTPUT_DIR / "metadata.json").write_text(json.dumps(metadata, indent=2, default=str) + "\n")
@@ -288,6 +455,8 @@ def main() -> None:
     fig.savefig(OUTPUT_DIR / "calibration_first_repeat.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
     pd.DataFrame(calibration_rows).to_csv(OUTPUT_DIR / "calibration_first_repeat.csv", index=False)
+    write_architecture_figure()
+    write_xai_artifacts(X, y, groups)
     print(json.dumps(metadata, indent=2))
     print("\nRepeated group-aware nested-validation summary:")
     print(summary.round(4).to_string())

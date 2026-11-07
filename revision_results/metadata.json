@@ -21,5 +21,6 @@
   "numpy": "1.26.4",
   "scikit_learn": "1.4.2",
   "xgboost": "2.0.3",
+  "shap": "0.46.0",
   "model_selection": "Fixed specifications; no test-set tuning was performed."
 }

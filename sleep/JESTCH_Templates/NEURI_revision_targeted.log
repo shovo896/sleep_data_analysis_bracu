@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  7 NOV 2026 00:31
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.3.1)  7 NOV 2026 10:39
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1055,12 +1055,29 @@ LaTeX Font Info:    Font shape `U/msb/m/n' will be
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
 (Font)              scaled to size 7.91925pt on input line 87.
 (./NEURI_revision_body.tex [2]
-<calibration_first_repeat.png, id=133, 1004.19165pt x 312.9291pt>
+<architecture_duplicate_aware.png, id=132, 1307.1234pt x 620.5584pt>
+File: architecture_duplicate_aware.png Graphic file (type png)
+<use architecture_duplicate_aware.png>
+Package pdftex.def Info: architecture_duplicate_aware.png  used on input line 4
+1.
+(pdftex.def)             Requested size: 522.1081pt x 247.87808pt.
+<calibration_first_repeat.png, id=136, 1004.19165pt x 312.9291pt>
 File: calibration_first_repeat.png Graphic file (type png)
 <use calibration_first_repeat.png>
-Package pdftex.def Info: calibration_first_repeat.png  used on input line 74.
+Package pdftex.def Info: calibration_first_repeat.png  used on input line 83.
 (pdftex.def)             Requested size: 480.33849pt x 149.68378pt.
- [3]) [4 <./calibration_first_repeat.png>]
+<xai_feature_stability.png, id=138, 968.1771pt x 583.9416pt>
+File: xai_feature_stability.png Graphic file (type png)
+<use xai_feature_stability.png>
+Package pdftex.def Info: xai_feature_stability.png  used on input line 94.
+(pdftex.def)             Requested size: 522.1081pt x 314.9139pt.
+<xai_local_audit.png, id=140, 968.418pt x 584.4234pt>
+File: xai_local_audit.png Graphic file (type png)
+<use xai_local_audit.png>
+Package pdftex.def Info: xai_local_audit.png  used on input line 103.
+(pdftex.def)             Requested size: 522.1081pt x 315.09346pt.
+ [3] [4 <./architecture_duplicate_aware.png> <./calibration_first_repeat.png>] 
+[5 <./xai_feature_stability.png> <./xai_local_audit.png>]) [6]
 Underfull \hbox (badness 1622) in paragraph at lines 923--924
 []\T1/bch/m/n/8 Fawcett T. An in-tro-duc-tion to ROC anal-y-sis. Pat-tern Recog
 -
@@ -1071,7 +1088,9 @@ Underfull \hbox (badness 5893) in paragraph at lines 923--924
 \T1/bch/m/n/8 ni-tion Let-ters 2006; 27 (8): 861--874. doi: 10.1016/
  []
 
-[5] (./NEURI_revision_targeted.aux)
+[7
+
+] (./NEURI_revision_targeted.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -1082,13 +1101,13 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 21464 strings out of 469006
- 365621 string characters out of 5454814
+ 21501 strings out of 469006
+ 366543 string characters out of 5454814
  910538 words of memory out of 5000000
- 49701 multiletter control sequences out of 15000+600000
- 720875 words of font info for 178 fonts, out of 8000000 for 9000
+ 49729 multiletter control sequences out of 15000+600000
+ 722048 words of font info for 181 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 92i,16n,98p,1726b,607s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 92i,16n,98p,1726b,633s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </Users/imac/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec
 /ectt0900.600pk></Users/imac/Library/texmf/fonts/type1/bitstrea/charter/bchb8a.
 pfb></Users/imac/Library/texmf/fonts/type1/bitstrea/charter/bchr8a.pfb></Users/
@@ -1098,10 +1117,10 @@ ive/2026basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/imac
 /Library/texmf/fonts/type1/urw/helvetic/uhvr8a.pfb></Users/imac/Library/texmf/f
 onts/type1/urw/palatino/uplr8a.pfb></Users/imac/Library/texmf/fonts/type1/urw/p
 alatino/uplri8a.pfb>
-Output written on NEURI_revision_targeted.pdf (5 pages, 909940 bytes).
+Output written on NEURI_revision_targeted.pdf (7 pages, 1648681 bytes).
 PDF statistics:
- 278 PDF objects out of 1000 (max. 8388607)
- 215 compressed objects within 3 object streams
- 59 named destinations out of 1000 (max. 500000)
- 101 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 312 PDF objects out of 1000 (max. 8388607)
+ 234 compressed objects within 3 object streams
+ 65 named destinations out of 1000 (max. 500000)
+ 124 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,0 +1,15 @@
+{
+  "repeat": 1,
+  "fold": 1,
+  "source_row": 62,
+  "duplicate_group": "71",
+  "true_label": "None",
+  "predicted_label": "None",
+  "predicted_probability": 0.9585821807120402,
+  "explained_model": "XGBoost base learner (not the stack)",
+  "fidelity_measure": "absolute TreeSHAP additivity residual on raw-margin scale",
+  "fidelity_abs_residual": 1.430511474609375e-06,
+  "p_Insomnia": 0.025129646530927096,
+  "p_None": 0.9585821807120402,
+  "p_Sleep_Apnea": 0.016288172757032753
+}

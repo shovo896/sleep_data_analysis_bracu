@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1793989896.84447 "NEURI_revision_targeted.tex" "NEURI_revision_targeted.pdf" "NEURI_revision_targeted" 1793989898.38493 0
-  "/Users/imac/Library/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1793989594 80059 27ea8bcf6e503e3366fe7fa7d3011735 ""
+["pdflatex"] 1794026377.74936 "NEURI_revision_targeted.tex" "NEURI_revision_targeted.pdf" "NEURI_revision_targeted" 1794026381.03414 0
+  "/Users/imac/Library/texlive/2026basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1794024952 81005 c2055587f4e5670ad0c84a9d5dc005cd ""
   "/Users/imac/Library/texlive/2026basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt0900.600pk" 1793989601.69181 17492 04e44bec41ab436adb23e0570f8563ca ""
   "/Users/imac/Library/texmf/fonts/tfm/adobe/helvetic/phvr8r.tfm" 1136768653 4712 9ef4d7d106579d4b136e1529e1a4533c ""
   "/Users/imac/Library/texmf/fonts/tfm/adobe/helvetic/phvr8t.tfm" 1136768653 7040 b2bd27e2bfe6f6948cbc3239cae7444f ""
@@ -171,16 +171,19 @@
   "CheckForUpd.pdf" 1793988060.91442 8463 717317383001bb8c4b477a33e916d55a ""
   "Elsevier.pdf" 1793988060.91633 82160 27fa8b1279407617718a277165ccf5a7 ""
   "JESTECH.pdf" 1793988060.92426 551078 78a956c2020a3c5f6d3154ced48428f2 ""
-  "NEURI_revision_body.tex" 1793989688.20112 9376 1c012acb403b68da77cf6a6a9b2b2af2 ""
-  "NEURI_revision_targeted.abs" 1793989897.80855 1337 4ca2e82d9e992ab0ee0ceebc398faa1e "pdflatex"
-  "NEURI_revision_targeted.aux" 1793989898.199 9984 f354e499f9f8d8f49e5490636a7482bf "pdflatex"
+  "NEURI_revision_body.tex" 1794026370.52626 13259 3ef15436413fe2b35dcd7f2c96b0197c ""
+  "NEURI_revision_targeted.abs" 1794026378.81015 1337 4ca2e82d9e992ab0ee0ceebc398faa1e "pdflatex"
+  "NEURI_revision_targeted.aux" 1794026380.79568 13397 f1dff80803158bcbeed36768d64d0066 "pdflatex"
   "NEURI_revision_targeted.tex" 1793989890.33467 82187 8b4a10c33ca0d1b1edc0b6a800e31093 ""
+  "architecture_duplicate_aware.png" 1794026346.0079 391538 44aadffaaca087de2b22ac8422eb9220 ""
   "balance.sty" 1793988302.89441 393 cf6d87f8ba62ec800e312607facc19e1 ""
   "breakurl.sty" 1793988369.92399 229 d0fb3fe9859515a43ddc570a311003c7 ""
   "calibration_first_repeat.png" 1793989672.47704 182951 d4f56304074f78a5f6e7b7b33db369d7 ""
   "cas-common.sty" 1793988060.93204 73381 b36d714c068df29c99c7c4483a66d8e0 ""
   "cas-dc.cls" 1793988060.93976 6964 503a77c531c53fa0a71c8e04b1f92146 ""
   "stfloats.sty" 1793988332.96664 272 b314395f0b6377113d37daa7eb7c0d18 ""
+  "xai_feature_stability.png" 1794026346.01225 206645 6a3a70b4b734026934b962b6e3474a0d ""
+  "xai_local_audit.png" 1794026346.01599 260614 a960a1a0dd5c2bcfe9ff72c97d945c40 ""
   (generated)
   "NEURI_revision_targeted.abs"
   "NEURI_revision_targeted.aux"

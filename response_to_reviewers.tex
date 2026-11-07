@@ -12,7 +12,7 @@
 \emph{An Explainable Stacking Framework for Multiclass Recorded Sleep-Status Classification}
 \end{center}
 
-We thank the editor and reviewers. The revision changes both the analysis and the manuscript. We verified that ``None'' is a literal source-file category, identified extensive duplicate predictor profiles, replaced the single random hold-out analysis with repeated duplicate-aware validation, released executable code and observation-level predictions, removed unsupported explainability figures, and narrowed the work to a reproducibility-focused benchmark audit. The earlier 97.33\% single-split result is not retained as a primary finding.
+We thank the editor and reviewers. The revision changes both the analysis and the manuscript. We verified that ``None'' is a literal source-file category, identified extensive duplicate predictor profiles, replaced the single random hold-out analysis with repeated duplicate-aware validation, and released executable code and observation-level predictions. A bounded TreeSHAP diagnostic is generated only for the XGBoost base learner; it reports fold-to-fold stability and a local audit, not an explanation of the stack or clinical mechanism. The earlier 97.33\% single-split result is not retained as a primary finding.
 
 \section*{Reviewer 1}
 \begin{enumerate}
@@ -21,7 +21,7 @@ We thank the editor and reviewers. The revision changes both the analysis and th
 \item \textbf{Reproducibility.} \texttt{revised\_analysis.py} is the executable analysis. It exports software versions, split/group assignments, fold metrics, reference labels, predictions, and probabilities. Preprocessing is refit inside every inner stacking fold.
 \item \textbf{Validation and comparisons.} Two shuffled repetitions of five-fold StratifiedGroupKFold replace the single hold-out. Exact retained-predictor duplicates cannot cross a fold. Stacking, soft voting, both base learners, logistic regression, a shallow tree, and histogram gradient boosting use identical outer folds.
 \item \textbf{Statistics.} The released predictions permit reproduction of all comparisons. Stacking minus soft-voting mean accuracy is -0.0031 (bootstrap 95\% interval -0.0162 to 0.0070); the first-repeat out-of-fold McNemar result is $p=0.6875$. No superiority claim remains.
-\item \textbf{Explanations.} SHAP, LIME, PCA, and ALE results were removed rather than presenting unstable attributions from a duplicate-rich, conflicting-label dataset.
+\item \textbf{Explanations.} The prior SHAP/LIME/PCA/ALE artwork is not used as evidence for the stack. The executable revision generates a TreeSHAP diagnostic for the XGBoost base learner across five grouped outer-test folds, with a defined 10th--90th stability band. Its local audit releases the CSV row, true and predicted labels, all probabilities, duplicate group, and additivity residual. The figures explicitly do not explain the stack or establish clinical mechanisms.
 \end{enumerate}
 
 \section*{Reviewer 2}
@@ -29,7 +29,7 @@ We thank the editor and reviewers. The revision changes both the analysis and th
 \item We no longer claim novelty for stacking. The contribution is the audit and duplicate-aware reproducible evaluation protocol.
 \item Risk-stratification, clinical-decision-support, and diagnostic claims were removed. The manuscript describes prediction of recorded source-file labels only.
 \item The single 75-observation result is replaced by repeated grouped validation, variability, probability scores, calibration artefacts, and paired comparisons.
-\item Post-hoc explanations are removed and are not used as biological mechanisms.
+\item Original post-hoc claims are removed. The new XGBoost base-learner diagnostic is presented only as model-dependence and stability information, never as a biological mechanism.
 \item Histogram gradient boosting was added as a contemporary tabular comparator.
 \item The paper was rewritten, condensed, and regenerated from the revised results. The suggested traffic forecasting, image segmentation, and remote-sensing papers are not topical to sleep-health tabular modelling or this methodology, so they were not cited.
 \end{enumerate}
@@ -38,10 +38,10 @@ We thank the editor and reviewers. The revision changes both the analysis and th
 \begin{enumerate}
 \item The Discussion explicitly separates internal benchmark discrimination from requirements for real clinical screening.
 \item Results explain the small number of discordant predictions, the interval crossing zero, and limited paired-test power.
-\item Rather than speculate about correlated-feature attribution rankings, the attribution results were removed.
+\item Rather than speculate about correlated-feature attribution rankings, the paper reports the fold-to-fold instability of the new base-learner TreeSHAP rankings.
 \item The inconsistent RF+XGBoost+SVM robustness analysis is removed.
 \item Limitations now state the potential classification bias and unknown clinical meaning of the literal ``None'' category.
-\item Local-explanation figures are removed; released observation-level predictions retain the information needed for auditability.
+\item The local diagnostic identifies its CSV row, group, true and predicted labels, probabilities, and additivity residual; the released CSV includes all feature contributions.
 \item The paper recommends prospective cohorts, development-only tuning, calibration assessment, and external validation.
 \item The suggested references were reviewed for relevance and were not added because they are outside the paper's topic.
 \end{enumerate}
@@ -52,7 +52,7 @@ We thank the editor and reviewers. The revision changes both the analysis and th
 \item The supplied code generates every reported result and releases package versions, groups, splits, probabilities, metrics, and paired statistics.
 \item Person ID is removed before group construction. Specifications are fixed; no test-fold tuning is performed.
 \item Repeated grouped validation, simple baselines, Brier scores, and out-of-fold reliability curves were added.
-\item SHAP/LIME/ALE material was removed from both paper and title.
+\item Stale SHAP/LIME/ALE artwork is not used. The paper contains only executable TreeSHAP figures for the XGBoost base learner, with explicit stability and scope limits.
 \end{enumerate}
 
 \section*{Reviewer 5}

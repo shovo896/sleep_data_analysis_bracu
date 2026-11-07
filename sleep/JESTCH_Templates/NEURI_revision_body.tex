@@ -34,11 +34,20 @@ Numerical predictors were standardised and categorical predictors one-hot encode
 
 Two shuffled repetitions (seeds 17 and 29) of five-fold StratifiedGroupKFold formed the outer evaluation. For every outer-training partition, four-fold StratifiedGroupKFold generated the base-model out-of-fold probabilities. The encoder, scaler, and each base learner were refitted within the corresponding inner training fold. Final base learners were then fitted on the entire outer training partition before outer-test prediction. The matched comparators were RF--XGBoost soft voting, Random Forest, XGBoost, logistic regression, a shallow decision tree, and histogram gradient boosting. All comparators used the same outer folds.
 
+Figure~\ref{fig:architecture-revision} documents the executed analysis rather than the earlier 80:20 hold-out workflow. It makes explicit the duplicate-group boundary, the two repeated outer validations, four-fold inner out-of-fold meta-feature generation, absence of encoded-feature pass-through, and the prediction-level artefacts released by the script.
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\safeincludegraphics[width=\textwidth]{architecture_duplicate_aware.png}
+\caption{Executed duplicate-aware analysis architecture. Predictor-profile groups are created after deterministic preparation and remain intact in all outer and inner splits. Random Forest and XGBoost class probabilities are the only meta-learner inputs; encoded predictors are not passed through. Every learned transformation is fitted only within its relevant training partition.}
+\label{fig:architecture-revision}
+\end{figure*}
+
 \subsection{Reproducibility and evaluation}
 
 The executable analysis is provided as \texttt{revised\_analysis.py}. It records software versions, seeds, group identifiers, outer-fold assignments, fold-level metrics, and observation-level reference labels, predictions, and class probabilities. Accuracy, macro-F1, multiclass log loss, and multiclass Brier score were calculated per outer fold. For stacking versus soft voting, we report the mean matched fold-level accuracy difference, a 10,000-resample percentile bootstrap interval, and an exact McNemar test on the first repetition's complete out-of-fold predictions. Repeated folds are correlated; these quantities describe internal-validation variability and do not represent external validation.
 
-Post-hoc SHAP, LIME, PCA, and ALE plots from the exploratory analysis are not interpreted as clinical or biological evidence in this revision. The duplicate structure, conflicting labels, and correlated predictors make attribution rankings potentially unstable. Rather than present unsupported local explanations, the released prediction table permits each reported prediction to be audited directly.
+The earlier SHAP, LIME, PCA, and ALE graphics are not retained as evidence for the final stacking classifier. Instead, the executable analysis adds a deliberately limited, auditable TreeSHAP diagnostic for the XGBoost \emph{base learner} only: five grouped outer-test folds provide feature-attribution stability estimates, and one held-out prediction includes its row index, observed label, predicted probabilities, and an additivity residual. This diagnostic does not explain the full stack, establish clinical mechanisms, or support deployment claims.
 
 \section{Results}
 \label{sec:results-revision}
@@ -76,19 +85,39 @@ Figure~\ref{fig:calibration-revision} shows class-wise reliability curves from t
 \label{fig:calibration-revision}
 \end{figure*}
 
+\subsection{Audited XAI diagnostics}
+
+To retain an explainability component without reintroducing unsupported claims, TreeSHAP was applied only to the fitted XGBoost base learner in the first repetition's five grouped outer-test folds. One-hot contributions were summed to their original predictor before ranking. Figure~\ref{fig:xai-stability-revision} reports mean absolute TreeSHAP values with the 10th--90th empirical percentile band across these five folds. Systolic blood pressure had the largest mean attribution, but its range was substantial; diastolic blood pressure changed from rank 1 to rank 9 across folds. These diagnostics therefore describe model dependence and its instability, not a stable biological ranking or a stacking-model explanation.
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\safeincludegraphics[width=\textwidth]{xai_feature_stability.png}
+\caption{Feature-attribution stability for the XGBoost base learner, not the stacked classifier. Bars are mean absolute TreeSHAP values over five grouped outer-test folds from the first repetition. Error bars are the defined 10th--90th empirical percentile band; they show material fold-to-fold variability for several predictors.}
+\label{fig:xai-stability-revision}
+\end{figure*}
+
+For the local audit, the script selected the highest-confidence XGBoost outer-test prediction in repetition 1, fold 1: CSV row 62 (zero-based), duplicate group 71, recorded label \emph{None}, predicted label \emph{None}, and predicted probability 0.959. Figure~\ref{fig:xai-local-revision} gives its largest transformed-feature contributions. The associated raw-margin TreeSHAP additivity residual was $1.43\times10^{-6}$, recorded with all class probabilities in \texttt{xai\_local\_audit.json} and \texttt{xai\_local\_audit.csv}. Fidelity of this additive decomposition does not demonstrate causal validity, robustness to a different background distribution, or fidelity for the final stack.
+
+\begin{figure*}[width=\textwidth,pos=!tbp,align=\centering]
+\centering
+\safeincludegraphics[width=\textwidth]{xai_local_audit.png}
+\caption{Audited local TreeSHAP diagnostic for an XGBoost base-learner outer-test prediction: CSV row 62 (zero-based), true label \emph{None}, predicted label \emph{None}, and predicted probability 0.959. Positive and negative bars change the predicted-class raw margin. The row identity, all three class probabilities, duplicate group, and additivity residual are released with the figure.}
+\label{fig:xai-local-revision}
+\end{figure*}
+
 \section{Discussion}
 \label{sec:discussion-revision}
 
 The original single random hold-out estimate was sensitive to duplicate predictor profiles crossing the evaluation boundary. Under duplicate-aware validation, the observed performance is lower and more variable, and logistic regression is competitive with the ensemble. This does not invalidate the computational exercise; it changes its interpretation. The principal contribution is an auditable evaluation protocol for a small, duplicate-rich benchmark, not a new stacking algorithm or evidence of superiority over established models.
 
-The recorded outcome is not a clinically adjudicated diagnostic standard. Sleep duration and quality may also overlap with information used to identify insomnia, and 22 identical predictor profiles have discordant recorded labels. Accordingly, performance on this dataset must be separated from the requirements of real-world clinical screening: a defined intended use, independently adjudicated reference outcomes, prospective evaluation, subgroup assessment, calibration in the target population, and external validation. Attribution displays describe a fitted model, not a biological mechanism; feature dependence can redistribute importance among correlated predictors and across ensemble architectures.
+The recorded outcome is not a clinically adjudicated diagnostic standard. Sleep duration and quality may also overlap with information used to identify insomnia, and 22 identical predictor profiles have discordant recorded labels. Accordingly, performance on this dataset must be separated from the requirements of real-world clinical screening: a defined intended use, independently adjudicated reference outcomes, prospective evaluation, subgroup assessment, calibration in the target population, and external validation. The XGBoost attribution figures describe one fitted base learner, not a biological mechanism or the decision logic of the complete stack; feature dependence can redistribute importance among correlated predictors and across ensemble architectures.
 
 \section{Limitations}
 \label{sec:limitations-revision}
 
-The study uses one small public dataset with undocumented collection provenance and no external clinical cohort. The literal \emph{None} category may still introduce classification bias because its clinical semantics are not established. Repeated grouped folds share the same source dataset and are not independent replications. Model settings were fixed rather than optimised through a broad hyperparameter search. The reported probability and calibration summaries are internal only. These limitations preclude diagnostic, treatment, or deployment claims.
+The study uses one small public dataset with undocumented collection provenance and no external clinical cohort. The literal \emph{None} category may still introduce classification bias because its clinical semantics are not established. Repeated grouped folds share the same source dataset and are not independent replications. Model settings were fixed rather than optimised through a broad hyperparameter search. The reported probability and calibration summaries are internal only. The XAI diagnostic concerns the XGBoost base learner rather than the stack, and five correlated folds provide only an internal stability screen. These limitations preclude diagnostic, treatment, or deployment claims.
 
 \section{Conclusion}
 \label{sec:conclusion-revision}
 
-This revision retains RF--XGBoost stacking as the primary computational configuration but evaluates it with verified outcome coding, duplicate-aware fold assignment, fold-specific preprocessing, matched comparators, and released prediction-level artefacts. The stack did not exceed soft voting or logistic regression in mean accuracy or macro-F1. The work should therefore be interpreted as a reproducible benchmark audit of recorded sleep-status labels, not as validated clinical risk stratification or diagnostic evidence.
+This revision retains RF--XGBoost stacking as the primary computational configuration but evaluates it with verified outcome coding, duplicate-aware fold assignment, fold-specific preprocessing, matched comparators, released prediction-level artefacts, and a bounded XGBoost base-learner XAI audit. The stack did not exceed soft voting or logistic regression in mean accuracy or macro-F1. The work should therefore be interpreted as a reproducible benchmark audit of recorded sleep-status labels, not as validated clinical risk stratification or diagnostic evidence.

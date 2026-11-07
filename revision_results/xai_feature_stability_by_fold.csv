@@ -1,0 +1,61 @@
+repeat,fold,feature,mean_abs_shap,rank,explained_model
+1,1,Diastolic_BP,0.4094333052635193,1,XGBoost base learner
+1,1,Systolic_BP,0.2980957627296448,2,XGBoost base learner
+1,1,Sleep Duration,0.22257736325263977,3,XGBoost base learner
+1,1,BMI Category,0.22176289558410645,4,XGBoost base learner
+1,1,Heart Rate,0.1430530846118927,5,XGBoost base learner
+1,1,Age,0.11483302712440491,6,XGBoost base learner
+1,1,Daily Steps,0.11473184823989868,7,XGBoost base learner
+1,1,Occupation,0.10127252049278468,8,XGBoost base learner
+1,1,Physical Activity Level,0.07353553175926208,9,XGBoost base learner
+1,1,Quality of Sleep,0.019871694967150688,10,XGBoost base learner
+1,1,Stress Level,0.017112454399466515,11,XGBoost base learner
+1,1,Gender,0.012371671153232455,12,XGBoost base learner
+1,2,Systolic_BP,0.4001685678958893,1,XGBoost base learner
+1,2,BMI Category,0.2395900334813632,2,XGBoost base learner
+1,2,Daily Steps,0.20423512160778046,3,XGBoost base learner
+1,2,Occupation,0.17743793409317732,4,XGBoost base learner
+1,2,Sleep Duration,0.13569451868534088,5,XGBoost base learner
+1,2,Heart Rate,0.12333550304174423,6,XGBoost base learner
+1,2,Diastolic_BP,0.10649900883436203,7,XGBoost base learner
+1,2,Age,0.08859530836343765,8,XGBoost base learner
+1,2,Physical Activity Level,0.061363667249679565,9,XGBoost base learner
+1,2,Gender,0.02160195936448872,10,XGBoost base learner
+1,2,Quality of Sleep,0.010303224436938763,11,XGBoost base learner
+1,2,Stress Level,0.0021385494619607925,12,XGBoost base learner
+1,3,Systolic_BP,0.4612094759941101,1,XGBoost base learner
+1,3,BMI Category,0.2829502518870868,2,XGBoost base learner
+1,3,Sleep Duration,0.2742970883846283,3,XGBoost base learner
+1,3,Physical Activity Level,0.2092953473329544,4,XGBoost base learner
+1,3,Daily Steps,0.12070631980895996,5,XGBoost base learner
+1,3,Occupation,0.10395008108753245,6,XGBoost base learner
+1,3,Diastolic_BP,0.09480322897434235,7,XGBoost base learner
+1,3,Age,0.08784731477499008,8,XGBoost base learner
+1,3,Heart Rate,0.07622545212507248,9,XGBoost base learner
+1,3,Quality of Sleep,0.025686217471957207,10,XGBoost base learner
+1,3,Gender,0.013323054416105151,11,XGBoost base learner
+1,3,Stress Level,0.010848590172827244,12,XGBoost base learner
+1,4,Systolic_BP,0.4923766255378723,1,XGBoost base learner
+1,4,BMI Category,0.24245762289501727,2,XGBoost base learner
+1,4,Physical Activity Level,0.2235749512910843,3,XGBoost base learner
+1,4,Occupation,0.21987957862438634,4,XGBoost base learner
+1,4,Diastolic_BP,0.16821125149726868,5,XGBoost base learner
+1,4,Heart Rate,0.11189142614603043,6,XGBoost base learner
+1,4,Sleep Duration,0.10117793083190918,7,XGBoost base learner
+1,4,Age,0.04901498183608055,8,XGBoost base learner
+1,4,Quality of Sleep,0.032661546021699905,9,XGBoost base learner
+1,4,Daily Steps,0.023607483133673668,10,XGBoost base learner
+1,4,Stress Level,0.0052687032148242,11,XGBoost base learner
+1,4,Gender,0.004242524271830916,12,XGBoost base learner
+1,5,Systolic_BP,0.720639705657959,1,XGBoost base learner
+1,5,BMI Category,0.2688879407942295,2,XGBoost base learner
+1,5,Physical Activity Level,0.18969866633415222,3,XGBoost base learner
+1,5,Sleep Duration,0.12639254331588745,4,XGBoost base learner
+1,5,Heart Rate,0.12183226644992828,5,XGBoost base learner
+1,5,Age,0.10492302477359772,6,XGBoost base learner
+1,5,Daily Steps,0.10079234838485718,7,XGBoost base learner
+1,5,Occupation,0.08654401212697849,8,XGBoost base learner
+1,5,Diastolic_BP,0.07097987085580826,9,XGBoost base learner
+1,5,Quality of Sleep,0.02517065405845642,10,XGBoost base learner
+1,5,Gender,0.017979442374780774,11,XGBoost base learner
+1,5,Stress Level,0.016774697229266167,12,XGBoost base learner

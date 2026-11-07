@@ -3,7 +3,7 @@
 **Manuscript:** NEURI-D-26-00299  
 **Revised title:** *An Explainable Stacking Framework for Multiclass Recorded Sleep-Status Classification*
 
-We thank the editor and reviewers. The revision substantially changes both the analysis and the paper. We verified that `None` is a literal source-file string rather than a missing value, discovered extensive duplicate predictor profiles after identifier removal, replaced the single hold-out result with repeated duplicate-aware validation, released executable code and all predictions/splits, removed unvalidated explainability analyses, and narrowed the manuscript to a reproducibility-focused benchmark audit. We do not retain the earlier 97.33% single-split result as a primary finding.
+We thank the editor and reviewers. The revision substantially changes both the analysis and the paper. We verified that `None` is a literal source-file string rather than a missing value, discovered extensive duplicate predictor profiles after identifier removal, replaced the single hold-out result with repeated duplicate-aware validation, released executable code and all predictions/splits, and narrowed the manuscript to a reproducibility-focused benchmark audit. A bounded, executable TreeSHAP diagnostic is included only for the XGBoost base learner; it reports fold-to-fold stability and a local audit but is not used to explain the stack or make clinical claims. We do not retain the earlier 97.33% single-split result as a primary finding.
 
 ## Reviewer 1
 
@@ -12,14 +12,14 @@ We thank the editor and reviewers. The revision substantially changes both the a
 3. **Reproducibility.** `revised_analysis.py` is a single executable analysis. `revision_results/metadata.json` records Python, pandas, NumPy, scikit-learn, and XGBoost versions; `split_assignments.csv` has every fold/group assignment; and the code refits preprocessing inside every inner base-model fold. `requirements.txt` is updated.
 4. **Validation and matched comparisons.** We replaced the single split with two shuffled repetitions of five-fold StratifiedGroupKFold. Exact retained-predictor duplicates never cross a fold. Comparators are stacking, soft voting, Random Forest, XGBoost, logistic regression, shallow decision tree, and histogram gradient boosting, all on identical outer folds (Table 2).
 5. **Statistics.** `predictions.csv` provides reference labels, predictions, and class probabilities for every model/fold/repetition. `paired_comparison.json` provides the matched accuracy bootstrap and exact McNemar calculation. Stacking is not claimed to be superior: its accuracy difference from soft voting is -0.0031 (95% bootstrap interval -0.0162 to 0.0070), and the first-repeat McNemar result is p=0.6875.
-6. **Explanations.** We removed SHAP, LIME, PCA, and ALE results rather than retaining unstable explanatory figures. The revised paper explains why their interpretation is not supported by this duplicate-rich, conflicting-label dataset.
+6. **Explanations.** We did not retain the earlier SHAP/LIME/PCA/ALE figures as evidence for the stack. The executable revision instead generates a TreeSHAP diagnostic for the XGBoost base learner over five grouped outer-test folds, with a defined 10th--90th stability band. Its local audit releases the CSV row index, recorded and predicted labels, all class probabilities, duplicate group, and TreeSHAP additivity residual. The figures explicitly state that they do not explain the stack or establish clinical mechanisms.
 
 ## Reviewer 2
 
 1. **Novelty.** We no longer present stacking itself as novel. The stated contribution is the auditable duplicate-aware evaluation protocol and the resulting correction to the earlier optimistic estimate.
 2. **Clinical interpretation.** “Risk stratification,” “clinical decision support,” and diagnostic claims were removed. The title, abstract, discussion, conclusion, and limitations identify the task as prediction of recorded source-file labels only.
 3. **Rigorous validation.** The single 75-row hold-out result is no longer the primary result. Repeated grouped outer validation, performance variability, probability scores, calibration artefacts, and a paired comparison are reported.
-4. **Explanation methods.** The post-hoc explanation claims were removed, not treated as biological or clinical mechanisms.
+4. **Explanation methods.** The original post-hoc claims were removed. The new XGBoost base-learner diagnostic is treated only as model-dependence and stability information, never as a biological or clinical mechanism.
 5. **Competitive tabular comparator.** Histogram gradient boosting was added alongside the conventional baseline, tree, and ensemble comparators. It is evaluated on the same grouped folds.
 6. **Presentation and references.** The manuscript was rewritten and condensed, with newly generated tables rather than decorative figures. References were reduced to sources directly relevant to the methods and dataset. The suggested traffic forecasting, image segmentation, and remote-sensing object-detection papers are outside the topic and are therefore not cited.
 
@@ -27,10 +27,10 @@ We thank the editor and reviewers. The revision substantially changes both the a
 
 1. The Discussion now explicitly separates internal benchmark discrimination from the requirements for real clinical screening.
 2. The Results now explains the small number of discordant predictions, the confidence interval crossing zero, and the limited power of the paired comparison.
-3. Rather than speculate about collinearity-driven SHAP/LIME rankings, we removed those rankings and state the reason.
+3. The manuscript reports the fold-to-fold instability of the new base-learner TreeSHAP rankings rather than speculating that any ranking is clinically stable.
 4. The inconsistent RF+XGBoost+SVM robustness analysis is removed completely.
 5. The Limitations now notes possible classification bias and unknown clinical meaning of the literal `None` label.
-6. Local explanation figures are removed; the released prediction file records all information needed to audit each model prediction.
+6. The retained local diagnostic identifies its exact CSV row, group, true label, predicted label, probabilities, and additivity residual; the released CSV contains all feature contributions for that audit.
 7. The Limitations recommends prospective cohorts, development-only tuning, calibration assessment, and external validation.
 8. Suggested citations were assessed for topical relevance; none are about sleep-health tabular modelling or the reported methodology, so they were not added.
 
@@ -40,7 +40,7 @@ We thank the editor and reviewers. The revision substantially changes both the a
 2. The revised code generates every numerical result and exports versions, groups, splits, probabilities, and comparisons. The wording “supplied” and unverified-result language has been removed.
 3. No test-set hyperparameter tuning occurs. Model specifications are fixed and stated. Person ID is removed before group construction.
 4. Repeated grouped validation replaces the single random split. Logistic regression, a shallow tree, and histogram gradient boosting are added. Multiclass Brier scores and first-repetition reliability curves are released.
-5. SHAP/LIME/ALE material has been removed from the manuscript and title.
+5. Stale SHAP/LIME/ALE artwork is not used. The manuscript contains only new, executable TreeSHAP figures for the XGBoost base learner, with explicit stability and scope limits.
 
 ## Reviewer 5
 
